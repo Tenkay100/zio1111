@@ -81,8 +81,10 @@
       <div class="admin-table-card">
         <div class="admin-table-header">
           <div class="admin-table-title">All Registered Clients</div>
-          <div class="admin-table-actions">
+          <div class="admin-table-actions flex gap-8">
             <button class="btn btn-primary btn-sm" onclick="window.openCreateUserModal()"><i class="ph-bold ph-plus"></i> Create User</button>
+            <button class="btn btn-warning btn-sm" onclick="window.openBroadcastModal()"><i class="ph-bold ph-megaphone"></i> Broadcast</button>
+            <button class="btn btn-danger btn-sm" onclick="window.stopAllAnnouncements()"><i class="ph-bold ph-stop-circle"></i> Stop Announcements</button>
             <button class="btn btn-ghost btn-sm" onclick="window.exportUsersCSV()"><i class="ph-bold ph-export"></i> Export CSV</button>
           </div>
         </div>
@@ -692,6 +694,49 @@
       const { error } = await dbDelete('notifications', { user_id: userId, title: 'System Announcement' });
       if (!error) showToast("Announcement cleared.", "success");
       else showToast("Failed to clear.", "danger");
+    };
+
+    window.stopAllAnnouncements = async () => {
+      if (!confirm("Are you sure you want to stop and remove all active system announcements from all user portals?")) return;
+      const { dbSelect, dbDelete } = await import('../assets/js/firebase.js');
+      const { data: list } = await dbSelect('notifications', { eq: { title: 'System Announcement' } });
+      if (list && list.length > 0) {
+        for (const item of list) {
+          await dbDelete('notifications', { id: item.id });
+        }
+      }
+      localStorage.removeItem('active_announcement');
+      showToast("All system announcements stopped and cleared successfully.", "success");
+      loadUsers();
+    };
+
+    window.openBroadcastModal = async () => {
+      const msg = prompt("Enter System Announcement message to broadcast to all clients:");
+      if (!msg || !msg.trim()) return;
+
+      const { dbSelect, dbInsert } = await import('../assets/js/firebase.js');
+      const { data: users } = await dbSelect('users');
+      if (users && users.length > 0) {
+        for (const u of users) {
+          await dbInsert('notifications', {
+            user_id: u.id,
+            title: 'System Announcement',
+            message: msg.trim(),
+            type: 'warning',
+            created_at: new Date().toISOString()
+          });
+        }
+      } else {
+        await dbInsert('notifications', {
+          user_id: 'all',
+          title: 'System Announcement',
+          message: msg.trim(),
+          type: 'warning',
+          created_at: new Date().toISOString()
+        });
+      }
+
+      showToast("Announcement broadcasted to all client portals!", "success");
     };
 
     window.deleteUser = async (userId) => {

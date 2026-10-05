@@ -1,6 +1,6 @@
 // ── ADMIN APP LOGIC ──
 import { requireAdminAuth, logout } from './auth.js';
-import { dbSelect, dbUpdate, dbInsert, subscribeToTable } from './firebase.js';
+import { dbSelect, dbUpdate, dbInsert, dbDelete, subscribeToTable } from './firebase.js';
 import { formatCurrency, formatDate, showToast, initSidebar } from './utils.js';
 
 let currentAdmin = null;
@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initAdminUI();
   await loadDashboardStats();
+  await loadAnnouncementStatus();
   await loadActivityFeed();
   initVolumeChart();
   initSidebar();
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   subscribeToTable('balances', () => loadDashboardStats());
   subscribeToTable('transfers', () => loadDashboardStats());
   subscribeToTable('kyc_documents', () => loadDashboardStats());
+  subscribeToTable('notifications', () => loadAnnouncementStatus());
 });
 
 function initAdminUI() {
@@ -315,3 +317,65 @@ function initVolumeChart() {
     }
   });
 }
+
+async function loadAnnouncementStatus() {
+  const statusEl = document.getElementById('announcement-status-text');
+  const stopBtn = document.getElementById('stop-announcement-btn');
+  if (!statusEl) return;
+
+  const { data: announcements } = await dbSelect('notifications', { eq: { title: 'System Announcement' } });
+  if (announcements && announcements.length > 0) {
+    const latest = announcements[0];
+    statusEl.innerHTML = `<span class="badge badge-warning" style="font-size: 0.75rem; vertical-align: middle;">ACTIVE</span> <strong style="color: var(--warning); margin-left: 6px;">"${latest.message.substring(0, 70)}${latest.message.length > 70 ? '...' : ''}"</strong> (${announcements.length} broadcast records active)`;
+    if (stopBtn) stopBtn.style.display = 'inline-flex';
+  } else {
+    statusEl.innerHTML = `<span class="badge badge-neutral" style="font-size: 0.75rem; vertical-align: middle;">INACTIVE</span> <span class="text-muted" style="margin-left: 6px;">No announcements currently running. Client portals are clean.</span>`;
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+}
+
+window.stopAllAnnouncements = async function() {
+  if (!confirm('Are you sure you want to stop and remove all active system announcements from all user portals?')) return;
+
+  const { data: list } = await dbSelect('notifications', { eq: { title: 'System Announcement' } });
+  if (list && list.length > 0) {
+    for (const item of list) {
+      await dbDelete('notifications', { id: item.id });
+    }
+  }
+
+  // Also remove legacy local storage key if present
+  localStorage.removeItem('active_announcement');
+
+  showToast('All system announcements stopped and cleared successfully.', 'success');
+  await loadAnnouncementStatus();
+};
+
+window.openBroadcastModal = async function() {
+  const msg = prompt('Enter System Announcement message to broadcast to all clients:');
+  if (!msg || !msg.trim()) return;
+
+  const { data: users } = await dbSelect('users');
+  if (users && users.length > 0) {
+    for (const u of users) {
+      await dbInsert('notifications', {
+        user_id: u.id,
+        title: 'System Announcement',
+        message: msg.trim(),
+        type: 'warning',
+        created_at: new Date().toISOString()
+      });
+    }
+  } else {
+    await dbInsert('notifications', {
+      user_id: 'all',
+      title: 'System Announcement',
+      message: msg.trim(),
+      type: 'warning',
+      created_at: new Date().toISOString()
+    });
+  }
+
+  showToast('Announcement broadcasted to all client portals!', 'success');
+  await loadAnnouncementStatus();
+};

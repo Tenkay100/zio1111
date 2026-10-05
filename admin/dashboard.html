@@ -105,6 +105,25 @@
 
       </div>
 
+      <!-- System Announcement Control Widget -->
+      <div class="admin-table-card mb-24" id="announcement-control-card" style="border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.03);">
+        <div class="admin-table-header" style="padding: 16px 20px;">
+          <div class="flex items-center gap-12">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: var(--warning); font-size: 1.2rem;">
+              <i class="ph-bold ph-megaphone"></i>
+            </div>
+            <div>
+              <div class="font-bold text-sm" style="color: var(--text-100);">System Announcement Broadcast Control</div>
+              <div class="text-xs text-muted mt-2" id="announcement-status-text">Checking active broadcast status...</div>
+            </div>
+          </div>
+          <div class="admin-table-actions flex gap-8">
+            <button class="btn btn-warning btn-sm" onclick="window.openBroadcastModal()"><i class="ph-bold ph-paper-plane-tilt"></i> Broadcast Announcement</button>
+            <button class="btn btn-danger btn-sm" id="stop-announcement-btn" onclick="window.stopAllAnnouncements()"><i class="ph-bold ph-stop-circle"></i> Stop Announcement</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Recent Registered Clients & Accounts Overview -->
       <div class="admin-table-card mb-24">
         <div class="admin-table-header">

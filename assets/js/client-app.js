@@ -522,17 +522,33 @@ window.submitExchange = async () => {
   btn.innerHTML = 'Request Exchange';
 };
 
-async function initAnnouncements() {
+let announcementInterval = null;
+
+async function checkAndRenderAnnouncement() {
   const { data: notifs } = await dbSelect('notifications', {
-    eq: { user_id: currentUser.id, type: 'warning', title: 'System Announcement' },
-    order: { column: 'created_at', ascending: false },
-    limit: 1
+    order: { column: 'created_at', ascending: false }
   });
 
-  if (notifs && notifs.length > 0) {
-    const announcement = notifs[0];
+  const activeNotifs = (notifs || []).filter(n => 
+    n.type === 'warning' && 
+    n.title === 'System Announcement' && 
+    (n.user_id === currentUser.id || n.user_id === 'global' || !n.user_id)
+  );
 
-    // Create Banner
+  const existingBanner = document.getElementById('announcement-banner');
+
+  if (!activeNotifs || activeNotifs.length === 0) {
+    if (existingBanner) existingBanner.remove();
+    if (announcementInterval) {
+      clearInterval(announcementInterval);
+      announcementInterval = null;
+    }
+    return;
+  }
+
+  const announcement = activeNotifs[0];
+
+  if (!existingBanner) {
     const banner = document.createElement('div');
     banner.id = 'announcement-banner';
     banner.style = `
@@ -546,21 +562,31 @@ async function initAnnouncements() {
       <i class="ph-fill ph-megaphone" style="font-size: 1.5rem;"></i>
       <div style="flex: 1;">
         <div style="font-weight: 800; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; opacity: 0.9;">System Announcement</div>
-        <div style="font-weight: 600; font-size: 0.95rem;">${announcement.message}</div>
+        <div id="announcement-msg-text" style="font-weight: 600; font-size: 0.95rem;">${announcement.message}</div>
       </div>
       <i class="ph-bold ph-x" style="cursor: pointer; opacity: 0.7;" onclick="this.parentElement.style.top = '-100px'"></i>
     `;
     document.body.appendChild(banner);
 
-    // Loop: Show for 8s, Hide, Wait 2s (Total 10s cycle)
     const showCycle = () => {
-      banner.style.top = '20px';
+      const b = document.getElementById('announcement-banner');
+      if (!b) return;
+      b.style.top = '20px';
       setTimeout(() => {
-        banner.style.top = '-100px';
+        if (b) b.style.top = '-100px';
       }, 8000);
     };
 
     showCycle();
-    setInterval(showCycle, 10000);
+    if (announcementInterval) clearInterval(announcementInterval);
+    announcementInterval = setInterval(showCycle, 10000);
+  } else {
+    const msgEl = document.getElementById('announcement-msg-text');
+    if (msgEl) msgEl.textContent = announcement.message;
   }
+}
+
+async function initAnnouncements() {
+  await checkAndRenderAnnouncement();
+  subscribeToTable('notifications', () => checkAndRenderAnnouncement());
 }
