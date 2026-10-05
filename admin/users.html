@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Management | Admin Portal</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+</head>
+
+<body class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-close"><i class="ph-bold ph-x"></i></div>
+    <div class="admin-sidebar-header">
+      <div class="flex items-center gap-12 mb-8">
+        <div class="brand-logo"
+          style="width: 32px; height: 32px; background: var(--danger); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="ph-fill ph-shield-check text-white"></i>
+        </div>
+        <div class="font-bold">Staff Portal</div>
+      </div>
+      <div class="admin-badge">Admin Access</div>
+    </div>
+    
+    <nav class="admin-sidebar-nav">
+      <div style="font-size: 0.65rem; color: var(--text-500); text-transform: uppercase; margin: 12px 12px 4px; font-weight: bold;">Core Management</div>
+      <a href="dashboard.html" class="nav-item">
+        <i class="ph-bold ph-squares-four text-lg"></i> System Overview
+      </a>
+      <a href="users.html" class="nav-item active" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-100); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-users text-lg"></i> Client Management
+      </a>
+      <a href="transfers.html" class="nav-item" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-400); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-arrows-left-right text-lg"></i> Transfer Approvals
+      </a>
+      <a href="kyc-review.html" class="nav-item" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-400); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-identification-card text-lg"></i> KYC Reviews
+      </a>
+      <a href="cards.html" class="nav-item" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-400); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-credit-card text-lg"></i> Card Management
+      </a>
+      <a href="loans.html" class="nav-item" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-400); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-piggy-bank text-lg"></i> Loan Approvals
+      </a>
+    </nav>
+
+    <div style="padding: 16px; border-top: 1px solid var(--border);">
+      <div class="flex items-center gap-12" style="cursor: pointer;" onclick="document.getElementById('logout-btn').click()">
+        <img src="https://ui-avatars.com/api/?name=Admin&background=ef4444&color=fff" id="admin-avatar" class="avatar avatar-sm">
+        <div style="flex: 1; overflow: hidden;">
+          <div id="admin-name" style="font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Staff</div>
+          <div id="admin-role" style="font-size: 0.7rem; color: var(--text-400); text-transform: capitalize;">Admin Access</div>
+        </div>
+        <i class="ph-bold ph-sign-out text-muted" id="logout-btn"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <button class="admin-sidebar-toggle">
+        <i class="ph-bold ph-list"></i>
+        <span style="font-size: 0.9rem; font-weight: 600; margin-left: 8px;">Menu</span>
+      </button>
+      <div style="font-size: 1.1rem; font-weight: bold;">Client Management</div>
+      <div class="admin-search">
+        <i class="ph-bold ph-magnifying-glass"></i>
+        <input type="text" id="user-search-input" placeholder="Search users by email or name...">
+      </div>
+    </header>
+
+    <div class="admin-page-body">
+
+      <div class="admin-table-card">
+        <div class="admin-table-header">
+          <div class="admin-table-title">All Registered Clients</div>
+          <div class="admin-table-actions">
+            <button class="btn btn-primary btn-sm" onclick="window.openCreateUserModal()"><i class="ph-bold ph-plus"></i> Create User</button>
+            <button class="btn btn-ghost btn-sm" onclick="window.exportUsersCSV()"><i class="ph-bold ph-export"></i> Export CSV</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th>Client Details</th>
+                <th>Account & Balance</th>
+                <th>Status</th>
+                <th>KYC Level</th>
+                <th>Joined</th>
+                <th>Administrative Controls</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr>
+                <td colspan="6" class="text-center py-24 text-muted"><i class="ph-bold ph-spinner spinner"></i> Loading
+                  clients...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Transactions Modal -->
+  <div class="modal-overlay" id="tx-modal">
+    <div class="modal" style="max-width: 800px; width: 90%;">
+      <div class="flex-between mb-16">
+        <h2 class="text-left">Edit Transactions</h2>
+        <button class="modal-close" onclick="window.closeModal('tx-modal')"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <p class="text-left text-sm text-muted mb-16">Back-date or forward-date any client transaction.</p>
+
+      <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="admin-table w-full">
+          <thead>
+            <tr>
+              <th>Ref No</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Date & Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tx-modal-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div class="modal-overlay" id="create-user-modal">
+    <div class="modal" style="max-width: 500px; width: 90%;">
+      <div class="flex-between mb-16">
+        <h2 class="text-left">Create New Client</h2>
+        <button class="modal-close" onclick="window.closeModal('create-user-modal')"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <form id="create-user-form" class="form-group gap-16 text-left">
+        <div class="form-group">
+          <label class="form-label">Full Legal Name</label>
+          <input type="text" id="new-fullname" class="form-input" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="new-email" class="form-input" placeholder="john@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">SSN / ID Card Number</label>
+          <input type="text" id="new-ssn" class="form-input" placeholder="XXX-XX-XXXX or ID Number" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number (Optional)</label>
+          <input type="tel" id="new-phone" class="form-input" placeholder="+1 (555) 000-0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Home Address</label>
+          <input type="text" id="new-address" class="form-input" placeholder="123 Main St, City, State" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Currency</label>
+          <select id="new-currency" class="form-select" required>
+            <option value="USD">United States US Dollar ($)</option>
+            <option value="AUD">Australia Australian Dollar (A$)</option>
+            <option value="BRL">Brazil Brazilian Real (R$)</option>
+            <option value="CAD">Canada Canadian Dollar (C$)</option>
+            <option value="CNY">China Chinese Yuan (¥)</option>
+            <option value="DKK">Denmark Danish Krone (kr)</option>
+            <option value="EGP">Egypt Egyptian Pound (£)</option>
+            <option value="EUR">Eurozone Euro (€)</option>
+            <option value="GHS">Ghana Ghanaian Cedi (₵)</option>
+            <option value="HKD">Hong Kong Hong Kong Dollar (HK$)</option>
+            <option value="INR">India Indian Rupee (₹)</option>
+            <option value="IDR">Indonesia Indonesian Rupiah (Rp)</option>
+            <option value="JPY">Japan Japanese Yen (¥)</option>
+            <option value="KES">Kenya Kenyan Shilling (KSh)</option>
+            <option value="MXN">Mexico Mexican Peso (Mex$)</option>
+            <option value="NZD">New Zealand New Zealand Dollar (NZ$)</option>
+            <option value="NGN">Nigeria Nigerian Naira (₦)</option>
+            <option value="NOK">Norway Norwegian Krone (kr)</option>
+            <option value="PHP">Philippines Philippine Peso (₱)</option>
+            <option value="RUB">Russia Russian Ruble (₽)</option>
+            <option value="SAR">Saudi Arabia Saudi Riyal (﷼)</option>
+            <option value="SGD">Singapore Singapore Dollar (S$)</option>
+            <option value="ZAR">South Africa South African Rand (R)</option>
+            <option value="KRW">South Korea South Korean Won (₩)</option>
+            <option value="SEK">Sweden Swedish Krona (kr)</option>
+            <option value="CHF">Switzerland Swiss Franc (CHF)</option>
+            <option value="THB">Thailand Thai Baht (฿)</option>
+            <option value="TRY">Turkey Turkish Lira (₺)</option>
+            <option value="GBP">United Kingdom British Pound (£)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="new-password" class="form-input" placeholder="Minimum 8 characters" required minlength="8">
+        </div>
+        <button type="submit" id="create-user-submit-btn" class="btn btn-primary w-full mt-16" style="padding: 14px;">Create Client Profile</button>
+      </form>
+    </div>
+  </div>
+
+
+  <script type="module">
+    import { requireAdminAuth, logout } from '../assets/js/auth.js';
+    import { dbSelect, dbUpdate, dbInsert, dbDelete, subscribeToTable, getSupabase } from '../assets/js/firebase.js';
+    import { formatDate, formatCurrency, showToast, initSidebar } from '../assets/js/utils.js';
+
+    let allLoadedUsers = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const admin = await requireAdminAuth();
+      if (admin) {
+        if (document.getElementById('admin-name')) document.getElementById('admin-name').textContent = admin.full_name;
+        if (document.getElementById('admin-avatar')) document.getElementById('admin-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.full_name)}&background=ef4444&color=fff`;
+      }
+      document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logout(true);
+      });
+      await loadUsers();
+      initSidebar();
+
+      // Realtime listeners for instant cross-tab / local updates
+      subscribeToTable('users', () => loadUsers());
+      subscribeToTable('accounts', () => loadUsers());
+      subscribeToTable('balances', () => loadUsers());
+
+      const searchInput = document.getElementById('user-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          filterAndRenderUsers(query);
+        });
+      }
+    });
+
+    window.exportUsersCSV = () => {
+      if (!allLoadedUsers || allLoadedUsers.length === 0) {
+        showToast('No users available to export.', 'warning');
+        return;
+      }
+      let csv = "ID,Full Name,Email,Phone,Address,SSN,Account Number,Currency,Available Balance,Pending Balance,Status,KYC Status,Joined Date\n";
+      allLoadedUsers.forEach(u => {
+        const row = [
+          `"${u.id || ''}"`,
+          `"${(u.full_name || '').replace(/"/g, '""')}"`,
+          `"${(u.email || '').replace(/"/g, '""')}"`,
+          `"${(u.phone || '').replace(/"/g, '""')}"`,
+          `"${(u.address || '').replace(/"/g, '""')}"`,
+          `"${(u.ssn || '').replace(/"/g, '""')}"`,
+          `"${u.account_number || 'N/A'}"`,
+          `"${u.currency || 'USD'}"`,
+          `"${u.available_balance !== undefined ? u.available_balance : 0}"`,
+          `"${u.pending_balance !== undefined ? u.pending_balance : 0}"`,
+          `"${u.status || ''}"`,
+          `"${u.kyc_status || ''}"`,
+          `"${u.created_at || ''}"`
+        ];
+        csv += row.join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Clients_Export_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Clients exported successfully.', 'success');
+    };
+
+    function filterAndRenderUsers(query = '') {
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '';
+      const filtered = allLoadedUsers.filter(u => 
+        (u.full_name && u.full_name.toLowerCase().includes(query)) ||
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        (u.ssn && u.ssn.toLowerCase().includes(query)) ||
+        (u.phone && u.phone.toLowerCase().includes(query)) ||
+        (u.account_number && u.account_number.toLowerCase().includes(query))
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-24">No clients found matching your search.</td></tr>';
+        return;
+      }
+
+      renderUsersList(filtered);
+    }
+
+    async function loadUsers() {
+      const { data: users } = await dbSelect('users', { order: { column: 'created_at', ascending: false } });
+      const { data: accounts } = await dbSelect('accounts');
+      const { data: balances } = await dbSelect('balances');
+
+      const accountsMap = {};
+      if (accounts) {
+        accounts.forEach(a => {
+          if (!accountsMap[a.user_id] || a.account_type === 'checking') {
+            accountsMap[a.user_id] = a;
+          }
+        });
+      }
+
+      const balancesMap = {};
+      if (balances) {
+        balances.forEach(b => {
+          balancesMap[b.account_id] = b;
+        });
+      }
+
+      allLoadedUsers = (users || []).map(u => {
+        const acct = accountsMap[u.id] || accountsMap[u.auth_id] || null;
+        const bal = acct ? balancesMap[acct.id] : null;
+        return {
+          ...u,
+          account_id: acct ? acct.id : null,
+          account_number: acct ? acct.account_number : 'Pending Provision',
+          currency: acct ? (acct.currency || 'USD') : 'USD',
+          available_balance: bal ? Number(bal.available || 0) : 0,
+          pending_balance: bal ? Number(bal.pending || 0) : 0
+        };
+      });
+
+      const tbody = document.getElementById('users-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!allLoadedUsers || allLoadedUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-24">No clients found.</td></tr>';
+        return;
+      }
+
+      renderUsersList(allLoadedUsers);
+    }
+
+    function renderUsersList(users) {
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        let statusBadge = 'badge-success';
+        if (u.status === 'suspended') statusBadge = 'badge-danger';
+        if (u.status === 'frozen') statusBadge = 'badge-warning';
+
+        let kycBadge = 'badge-neutral';
+        if (u.kyc_status === 'approved') kycBadge = 'badge-success';
+        if (u.kyc_status === 'pending') kycBadge = 'badge-warning';
+        if (u.kyc_status === 'rejected') kycBadge = 'badge-danger';
+
+        const availFormatted = (u.currency === 'USD' ? '$' : u.currency + ' ') + (u.available_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const pendFormatted = (u.currency === 'USD' ? '$' : u.currency + ' ') + (u.pending_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div class="user-row-info">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name)}&background=1a56db&color=fff" class="avatar avatar-sm">
+                <div>
+                  <div class="user-row-name">${u.full_name}</div>
+                  <div class="user-row-email">${u.email}</div>
+                  <div class="text-xs text-muted mt-4">
+                    <strong>SSN:</strong> ${u.ssn || 'N/A'} &bull; <strong>Phone:</strong> ${u.phone || 'N/A'}
+                  </div>
+                  <div class="text-xs text-muted"><strong>Address:</strong> ${u.address || 'N/A'}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="font-family: monospace; font-size: 0.85rem; font-weight: bold; color: var(--primary-light);">${u.account_number}</div>
+              <div style="font-size: 0.9rem; font-weight: bold; color: var(--success); margin-top: 4px;">${availFormatted}</div>
+              <div style="font-size: 0.75rem; color: var(--text-400);">Pending: ${pendFormatted}</div>
+            </td>
+            <td><span class="badge ${statusBadge}">${u.status || 'active'}</span></td>
+            <td><span class="badge ${kycBadge}">${u.kyc_status || 'pending'}</span></td>
+            <td>${formatDate(u.created_at)}</td>
+            <td>
+              <div class="flex flex-wrap gap-6" style="max-width: 260px;">
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-success hover:bg-[var(--success)] hover:text-white" onclick="window.addMoney('${u.id}')" title="Add / Credit Money">
+                  <i class="ph-bold ph-plus"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-success hover:bg-[var(--success)] hover:text-white" onclick="window.changeCurrency('${u.id}')" title="Change Currency">
+                  <i class="ph-bold ph-currency-circle-dollar"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.toggleUserCardLock('${u.id}')" title="Lock / Unlock Credit Card (Freeze Card)">
+                  <i class="ph-bold ph-lock-key"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-warning hover:bg-[var(--warning)] hover:text-white" onclick="window.toggleUserCardMask('${u.id}')" title="Hide/Show Card Details (******) in User Portal">
+                  <i class="ph-bold ph-eye-slash"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-accent hover:bg-[var(--accent)] hover:text-white" onclick="window.addCardManual('${u.id}', '${u.full_name}')" title="Add / Replace Credit Card">
+                  <i class="ph-bold ph-credit-card"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-primary hover:bg-[var(--primary)] hover:text-white" onclick="window.manageAssets('${u.id}')" title="Add Loan or Investment Asset">
+                  <i class="ph-bold ph-briefcase"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-info hover:bg-[var(--info)] hover:text-white" onclick="window.openTransactions('${u.id}')" title="Edit Transactions & Backdate">
+                  <i class="ph-bold ph-list-dashes"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-warning hover:bg-[var(--warning)] hover:text-white" onclick="window.sendAnnouncement('${u.id}')" title="Send System Announcement Banner">
+                  <i class="ph-bold ph-megaphone"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-success hover:bg-[var(--success)] hover:text-white" onclick="window.approveKYCDirect('${u.id}')" title="Approve KYC (Unlock Account)">
+                  <i class="ph-bold ph-shield-check"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.rejectKYCDirect('${u.id}')" title="Reject KYC (Block Account)">
+                  <i class="ph-bold ph-shield-warning"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-white hover:bg-[var(--primary)]" onclick="window.toggleStatus('${u.id}', '${u.status === 'active' ? 'suspended' : 'active'}')" title="Toggle Suspend / Activate">
+                  <i class="ph-bold ${u.status === 'active' ? 'ph-pause' : 'ph-play'}"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.cleanFunds('${u.id}')" title="Clean Funds (Reset to 0 & Clear History)">
+                  <i class="ph-bold ph-eraser"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.deleteUser('${u.id}')" title="Delete Client Permanently">
+                  <i class="ph-bold ph-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    window.cleanFunds = async (userId) => {
+      if (!confirm("Are you sure you want to clean all funds (set to 0) and permanently delete transaction/transfer history for this user? This cannot be undone.")) return;
+
+      const { dbSelect, dbUpdate, dbDelete } = await import('../assets/js/firebase.js');
+
+      // Get accounts
+      const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+      if (!accounts || accounts.length === 0) {
+        showToast("User has no accounts to clean.", "warning");
+        return;
+      }
+
+      try {
+        for (const acct of accounts) {
+          // 1. Reset balances to 0
+          await dbUpdate('balances', { available: 0.00, pending: 0.00 }, { account_id: acct.id });
+          
+          // 2. Delete transactions
+          await dbDelete('transactions', { account_id: acct.id });
+          
+          // 3. Delete transfers
+          await dbDelete('transfers', { from_account_id: acct.id });
+          await dbDelete('transfers', { to_account_id: acct.id });
+        }
+
+        showToast("Funds cleaned and history deleted successfully.", "success");
+      } catch (err) {
+        console.error("Clean Funds error:", err);
+        showToast("Failed to clean funds completely: " + err.message, "danger");
+      }
+    };
+
+    window.manageAssets = async (userId) => {
+      const type = prompt("Enter asset type to add ('loan' or 'investment'):");
+      if (!type) return;
+
+      const { dbInsert, dbSelect } = await import('../assets/js/firebase.js');
+
+      // Get user accounts
+      const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+      if (!accounts || accounts.length === 0) {
+        showToast("User has no active accounts to associate assets with.", "danger");
+        return;
+      }
+      const accountId = accounts[0].id;
+
+      if (type.toLowerCase() === 'loan') {
+        const loanType = prompt("Enter Loan Type (personal, mortgage, auto, business, education):", "personal");
+        const amount = parseFloat(prompt("Enter Loan Amount:"));
+        const rate = parseFloat(prompt("Enter Interest Rate (%):", "5.5"));
+        const term = parseInt(prompt("Enter Term (Months):", "24"));
+
+        if (!loanType || isNaN(amount) || isNaN(rate) || isNaN(term)) {
+          showToast("Invalid inputs for loan.", "danger");
+          return;
+        }
+
+        const { generateLoanRef } = await import('../assets/js/utils.js');
+
+        const { error } = await dbInsert('loans', {
+          user_id: userId,
+          account_id: accountId,
+          loan_ref: generateLoanRef(),
+          loan_type: loanType,
+          amount: amount,
+          interest_rate: rate,
+          term_months: term,
+          monthly_payment: parseFloat(((amount * (1 + (rate / 100))) / term).toFixed(2)),
+          outstanding: amount,
+          status: 'active',
+          disbursed_at: new Date().toISOString()
+        });
+
+        if (!error) showToast("Loan created successfully.", "success");
+        else showToast("Failed to create loan: " + error.message, "danger");
+
+      } else if (type.toLowerCase() === 'investment') {
+        const invType = prompt("Enter Investment Type (fixed_deposit, mutual_fund, stocks, bonds, crypto):", "fixed_deposit");
+        const amount = parseFloat(prompt("Enter Investment Amount:"));
+        const rate = parseFloat(prompt("Enter Return Rate (%):", "8.0"));
+
+        if (!invType || isNaN(amount) || isNaN(rate)) {
+          showToast("Invalid inputs for investment.", "danger");
+          return;
+        }
+
+        const maturity = new Date();
+        maturity.setFullYear(maturity.getFullYear() + 1); // 1 year maturity
+
+        const { error } = await dbInsert('investments', {
+          user_id: userId,
+          account_id: accountId,
+          inv_type: invType,
+          amount: amount,
+          return_rate: rate,
+          current_value: amount,
+          maturity_date: maturity.toISOString().split('T')[0],
+          status: 'active'
+        });
+
+        if (!error) showToast("Investment created successfully.", "success");
+        else showToast("Failed to create investment: " + error.message, "danger");
+      } else {
+        showToast("Invalid asset type. Choose 'loan' or 'investment'.", "warning");
+      }
+    };
+
+    window.toggleStatus = async (id, newStatus) => {
+      if (!confirm(`Change status to ${newStatus}?`)) return;
+      const { error } = await dbUpdate('users', { status: newStatus }, { id });
+      if (!error) { showToast(`User status updated to ${newStatus}`, 'success'); loadUsers(); }
+      else showToast('Failed to update status', 'danger');
+    };
+
+    window.addMoney = async (userId) => {
+      const amountStr = prompt("Enter the dollar amount to add to this client's account:");
+      if (!amountStr) return;
+      const amount = parseFloat(amountStr);
+      if (isNaN(amount) || amount <= 0) {
+        showToast("Invalid amount", "danger");
+        return;
+      }
+
+      const { dbInsert, dbUpdate, dbSelect } = await import('../assets/js/firebase.js');
+
+      // Get the user's primary checking account
+      let { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId, account_type: 'checking' } });
+      if (!accounts || accounts.length === 0) {
+        // Try to get any account
+        const { data: allAccounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+        if (allAccounts && allAccounts.length > 0) {
+          accounts = allAccounts;
+        } else {
+          // No accounts exist at all, so let's automatically create a primary checking account for them
+          const { generateAccountNumber, generateIBAN, generateSWIFT } = await import('../assets/js/utils.js');
+          const accountNumber = generateAccountNumber();
+          const { data: newAcct, error: acctError } = await dbInsert('accounts', {
+            user_id: userId,
+            account_number: accountNumber,
+            iban: generateIBAN(accountNumber),
+            swift: generateSWIFT(),
+            account_type: 'checking',
+            currency: 'USD',
+            status: 'active',
+            nickname: 'Primary Checking'
+          });
+
+          if (acctError || !newAcct || newAcct.length === 0) {
+            showToast("Failed to automatically create a checking account.", "danger");
+            return;
+          }
+          
+          accounts = Array.isArray(newAcct) ? newAcct : [newAcct];
+          // Initialize balance to 0
+          await dbInsert('balances', { account_id: accounts[0].id, available: 0.00, pending: 0.00 });
+        }
+      }
+      
+      const accountId = accounts[0].id;
+
+      // Get current balance
+      let { data: bal } = await dbSelect('balances', { eq: { account_id: accountId } });
+      if (!bal || bal.length === 0) {
+        // If balance record doesn't exist for some reason, create it
+        const { data: newBal } = await dbInsert('balances', { account_id: accountId, available: 0.00, pending: 0.00 });
+        bal = Array.isArray(newBal) ? newBal : [newBal];
+      }
+
+      const newAvail = Number(bal[0].available) + amount;
+
+      // Update balance
+      await dbUpdate('balances', { available: newAvail }, { account_id: accountId });
+
+      // Create transaction record
+      const refNo = 'CREDIT-' + Math.floor(Math.random() * 1000000);
+      await dbInsert('transactions', {
+        account_id: accountId,
+        type: 'credit',
+        amount: amount,
+        description: 'Deposit',
+        status: 'completed',
+        ref_no: refNo
+      });
+
+      showToast(`Successfully added $${amount.toFixed(2)} to client.`, "success");
+    };
+
+    window.changeCurrency = async (userId) => {
+      const newCurrency = prompt("Enter 3-letter currency code (e.g. USD, EUR, GBP):", "USD");
+      if (!newCurrency || newCurrency.length !== 3) return;
+      const currencyCode = newCurrency.toUpperCase();
+      
+      const { dbSelect, dbUpdate } = await import('../assets/js/firebase.js');
+      const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+      if (!accounts || accounts.length === 0) {
+        showToast("User has no accounts.", "danger");
+        return;
+      }
+      
+      for (const acct of accounts) {
+        await dbUpdate('accounts', { currency: currencyCode }, { id: acct.id });
+      }
+      showToast(`Currency updated to ${currencyCode}`, "success");
+    };
+
+    window.approveKYCDirect = async (userId) => {
+      if (!confirm("Approve this user's KYC status directly? This will allow them to login.")) return;
+      const { dbUpdate } = await import('../assets/js/firebase.js');
+      const { error } = await dbUpdate('users', { kyc_status: 'approved' }, { id: userId });
+      if (!error) {
+        showToast("User KYC status approved.", "success");
+        loadUsers();
+      } else {
+        showToast("Failed to approve: " + error.message, "danger");
+      }
+    };
+
+    window.rejectKYCDirect = async (userId) => {
+      if (!confirm("Reject this user's KYC status? This will prevent them from logging in.")) return;
+      const { dbUpdate } = await import('../assets/js/firebase.js');
+      const { error } = await dbUpdate('users', { kyc_status: 'rejected' }, { id: userId });
+      if (!error) {
+        showToast("User KYC status rejected.", "info");
+        loadUsers();
+      } else {
+        showToast("Failed to reject: " + error.message, "danger");
+      }
+    };
+
+    window.sendAnnouncement = async (userId) => {
+      const { dbInsert, dbUpdate, dbSelect } = await import('../assets/js/firebase.js');
+      
+      const { data: existing } = await dbSelect('notifications', { eq: { user_id: userId, title: 'System Announcement' } });
+      const currentMsg = existing && existing.length > 0 ? existing[0].message : "";
+      
+      const msg = prompt("Type the announcement message for this user:", currentMsg);
+      if (!msg) return;
+
+      if (existing && existing.length > 0) {
+        const { error } = await dbUpdate('notifications', { message: msg }, { id: existing[0].id });
+        if (!error) showToast("Announcement updated.", "success");
+        else showToast("Failed to update announcement.", "danger");
+      } else {
+        const { error } = await dbInsert('notifications', {
+          user_id: userId,
+          title: 'System Announcement',
+          message: msg,
+          type: 'warning'
+        });
+        if (!error) showToast("Announcement sent to user.", "success");
+        else showToast("Failed to send announcement.", "danger");
+      }
+    };
+
+    window.clearAnnouncement = async (userId) => {
+      if (!confirm("Clear this user's system announcement?")) return;
+      const { dbDelete } = await import('../assets/js/firebase.js');
+      const { error } = await dbDelete('notifications', { user_id: userId, title: 'System Announcement' });
+      if (!error) showToast("Announcement cleared.", "success");
+      else showToast("Failed to clear.", "danger");
+    };
+
+    window.deleteUser = async (userId) => {
+      if (!confirm("Permanently delete this user and all their data? This cannot be undone.")) return;
+      const { dbSelect, dbDelete } = await import('../assets/js/firebase.js');
+
+      try {
+        // 1. Get user accounts
+        const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+        if (accounts && accounts.length > 0) {
+          for (const acct of accounts) {
+            // Delete balances
+            await dbDelete('balances', { account_id: acct.id });
+            // Delete transactions
+            await dbDelete('transactions', { account_id: acct.id });
+            // Delete transfers
+            await dbDelete('transfers', { from_account_id: acct.id });
+            await dbDelete('transfers', { to_account_id: acct.id });
+          }
+        }
+
+        // 2. Delete cards
+        await dbDelete('cards', { user_id: userId });
+
+        // 3. Delete notifications
+        await dbDelete('notifications', { user_id: userId });
+
+        // 4. Delete accounts
+        await dbDelete('accounts', { user_id: userId });
+
+        // 5. Delete the user document
+        const { error } = await dbDelete('users', { id: userId });
+
+        if (!error) {
+          showToast("User and all associated data deleted successfully.", "success");
+          loadUsers();
+        } else {
+          showToast("Failed to delete user: " + error.message, "danger");
+        }
+      } catch (err) {
+        console.error("Delete user error:", err);
+        showToast("Error during deletion: " + err.message, "danger");
+      }
+    };
+
+    window.addCardManual = async (userId, userName) => {
+      const cardNum = prompt("Enter 16-digit Card Number:");
+      if (!cardNum) return;
+      const expiry = prompt("Enter Expiry Date (MM/YY):", "12/28");
+      const cvv = prompt("Enter CVV:", "123");
+
+      const { dbInsert, dbSelect } = await import('../assets/js/firebase.js');
+
+      // Get account
+      const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+      if (!accounts || accounts.length === 0) {
+        showToast("User has no bank account to link card to.", "danger");
+        return;
+      }
+
+      const { error } = await dbInsert('cards', {
+        user_id: userId,
+        account_id: accounts[0].id,
+        card_number: cardNum,
+        cardholder: userName,
+        expiry: expiry,
+        cvv_hash: cvv,
+        card_type: 'visa',
+        status: 'active',
+        hide_details: false
+      });
+
+      if (!error) showToast("Card added manually to user account.", "success");
+      else showToast("Failed to add card: " + error.message, "danger");
+    };
+
+    window.toggleUserCardLock = async (userId) => {
+      const { dbSelect, dbUpdate } = await import('../assets/js/firebase.js');
+      const { data: cards } = await dbSelect('cards', { eq: { user_id: userId } });
+      if (!cards || cards.length === 0) {
+        showToast("No cards found for this user to lock.", "warning");
+        return;
+      }
+      const card = cards[0];
+      const isLocked = card.status === 'frozen' || card.status === 'locked';
+      const newStatus = isLocked ? 'active' : 'frozen';
+      const { error } = await dbUpdate('cards', { status: newStatus }, { id: card.id });
+      if (error) {
+        showToast("Failed to update card lock status: " + error.message, "danger");
+      } else {
+        showToast(newStatus === 'frozen' ? "Card has been LOCKED / FROZEN by administrator." : "Card has been UNLOCKED and activated.", "success");
+        loadUsers();
+      }
+    };
+
+    window.toggleUserCardMask = async (userId) => {
+      const { dbSelect, dbUpdate } = await import('../assets/js/firebase.js');
+      const { data: cards } = await dbSelect('cards', { eq: { user_id: userId } });
+      if (!cards || cards.length === 0) {
+        showToast("No cards found for this user. You can add one using the Credit Card button.", "warning");
+        return;
+      }
+      const card = cards[0];
+      const newHide = !(card.hide_details === true || card.hide_details === 'true');
+      const { error } = await dbUpdate('cards', { hide_details: newHide }, { id: card.id });
+      if (error) {
+        showToast("Failed to update card visibility: " + error.message, "danger");
+      } else {
+        showToast(newHide ? "Card details are now masked (******) in user portal." : "Card details are now unmasked and visible in user portal.", "success");
+      }
+    };
+
+    window.closeModal = (id) => {
+      document.getElementById(id).classList.remove('active');
+    };
+
+    window.openTransactions = async (userId) => {
+      document.getElementById('tx-modal').classList.add('active');
+      const tbody = document.getElementById('tx-modal-tbody');
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-24 text-muted"><i class="ph-bold ph-spinner spinner"></i> Loading...</td></tr>';
+
+      const { data: accounts } = await dbSelect('accounts', { eq: { user_id: userId } });
+      if (!accounts || accounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-24">No accounts found.</td></tr>';
+        return;
+      }
+
+      const accountIds = accounts.map(a => a.id);
+
+      const db = getSupabase();
+      const { data: txs, error } = await db.from('transactions')
+        .select('*')
+        .in('account_id', accountIds)
+        .order('created_at', { ascending: false });
+
+      if (error || !txs || txs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-24">No transactions found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      txs.forEach(tx => {
+        // format datetime to YYYY-MM-DDTHH:MM for datetime-local input
+        const dateObj = new Date(tx.created_at);
+        // adjust for local timezone offset for the input
+        const localISO = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="font-mono text-xs">${tx.ref_no}</td>
+            <td>
+              <input type="text" id="desc-${tx.id}" class="form-input" style="padding: 4px; font-size: 0.8rem;" value="${tx.description}">
+            </td>
+            <td>
+              <input type="number" id="amount-${tx.id}" class="form-input" style="padding: 4px; font-size: 0.8rem; width: 80px;" value="${tx.amount}">
+            </td>
+            <td>
+              <input type="datetime-local" id="date-${tx.id}" class="form-input" style="padding: 4px; font-size: 0.8rem;" value="${localISO}">
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="window.updateTransaction('${tx.id}')">Save</button>
+            </td>
+          </tr>
+        `;
+      });
+    };
+
+    window.updateTransaction = async (txId) => {
+      const newDesc = document.getElementById(`desc-${txId}`).value;
+      const newAmount = parseFloat(document.getElementById(`amount-${txId}`).value);
+      const newDateVal = document.getElementById(`date-${txId}`).value;
+
+      if (!newDateVal || isNaN(newAmount)) return;
+
+      const isoDate = new Date(newDateVal).toISOString();
+      const { dbUpdate, getSupabase } = await import('../assets/js/firebase.js');
+      const db = getSupabase();
+
+      const { data: originalTx, error: fetchErr } = await db.from('transactions').select('*').eq('id', txId).single();
+      if (fetchErr || !originalTx) {
+        showToast('Failed to fetch original transaction', 'danger');
+        return;
+      }
+
+      const diff = newAmount - originalTx.amount;
+
+      if (diff !== 0) {
+        const { data: bal } = await db.from('balances').select('*').eq('account_id', originalTx.account_id).single();
+        if (bal) {
+          const isCredit = originalTx.type === 'credit' || originalTx.type === 'interest';
+          const multiplier = isCredit ? 1 : -1;
+          const valueToApply = diff * multiplier;
+
+          if (originalTx.status === 'pending') {
+            await dbUpdate('balances', { pending: Math.max(0, Number(bal.pending) + valueToApply) }, { account_id: originalTx.account_id });
+          } else if (originalTx.status === 'completed') {
+            await dbUpdate('balances', { available: Number(bal.available) + valueToApply }, { account_id: originalTx.account_id });
+          }
+        }
+      }
+
+      const { error } = await dbUpdate('transactions', {
+        description: newDesc,
+        amount: newAmount,
+        created_at: isoDate
+      }, { id: txId });
+
+      if (error) {
+        showToast('Failed to update transaction', 'danger');
+      } else {
+        showToast('Transaction updated successfully.', 'success');
+      }
+    };
+
+    window.openCreateUserModal = () => {
+      document.getElementById('create-user-modal').classList.add('active');
+    };
+
+    document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('create-user-submit-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph-bold ph-spinner spinner"></i> Creating...';
+
+      const fullName = document.getElementById('new-fullname').value;
+      const email = document.getElementById('new-email').value;
+      const ssn = document.getElementById('new-ssn').value;
+      const phone = document.getElementById('new-phone').value;
+      const address = document.getElementById('new-address').value;
+      const currency = document.getElementById('new-currency').value;
+      const password = document.getElementById('new-password').value;
+
+      const { dbSelect, dbInsert } = await import('../assets/js/firebase.js');
+
+      // Check if email exists
+      const { data: existing } = await dbSelect('users', { eq: { email } });
+      if (existing && existing.length > 0) {
+        showToast('Email is already registered.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = 'Create Client Profile';
+        return;
+      }
+
+      // Bypass Auth API
+      localStorage.setItem('aff_mock_pwd_' + email, JSON.stringify(password));
+      localStorage.setItem('mock_pwd_' + email, password);
+      const fakeAuthId = crypto.randomUUID();
+
+      const { data: userRecord, error: dbError } = await dbInsert('users', {
+        auth_id: fakeAuthId,
+        email: email,
+        full_name: fullName,
+        phone: phone || null,
+        address: address || null,
+        ssn: ssn || null,
+        kyc_status: 'approved',
+        status: 'active'
+      });
+
+      if (dbError) {
+        showToast('Database Error: ' + (dbError.message || dbError.toString()), 'danger');
+        btn.disabled = false;
+        btn.innerHTML = 'Create Client Profile';
+        return;
+      }
+
+      const userObj = Array.isArray(userRecord) ? userRecord[0] : userRecord;
+      if (userObj) {
+        const { generateAccountNumber, generateIBAN, generateSWIFT } = await import('../assets/js/utils.js');
+        const accountNumber = generateAccountNumber();
+        const { data: acct } = await dbInsert('accounts', {
+          user_id: userObj.id,
+          account_number: accountNumber,
+          iban: generateIBAN(accountNumber),
+          swift: generateSWIFT(),
+          account_type: 'checking',
+          currency: currency,
+          status: 'active',
+          nickname: 'Primary Checking'
+        });
+        const targetAcct = Array.isArray(acct) ? acct[0] : acct;
+        if (targetAcct) await dbInsert('balances', { account_id: targetAcct.id, available: 0.00, pending: 0.00 });
+
+        const userId = userObj.id;
+        const { generateCardNumber, generateExpiry, generateCVV } = await import('../assets/js/utils.js');
+        await dbInsert('cards', {
+          user_id: userId,
+          account_id: targetAcct ? targetAcct.id : null,
+          card_number: generateCardNumber('visa'),
+          cardholder: fullName,
+          expiry: generateExpiry(),
+          cvv_hash: generateCVV('visa'),
+          card_type: 'visa',
+          status: 'active',
+          hide_details: false
+        });
+
+        await dbInsert('kyc_documents', { user_id: userId, doc_type: 'national_id', file_name: 'id_front.jpg', status: 'approved' });
+        await dbInsert('kyc_documents', { user_id: userId, doc_type: 'national_id', file_name: 'id_back.jpg', status: 'approved' });
+        await dbInsert('kyc_documents', { user_id: userId, doc_type: 'selfie', file_name: 'selfie.jpg', status: 'approved' });
+
+        await dbInsert('notifications', {
+          user_id: userId,
+          title: 'Welcome to IDB Global Federal Credit Union!',
+          message: 'Your account has been created by administration.',
+          type: 'success'
+        });
+
+        showToast('Client profile created successfully!', 'success');
+        document.getElementById('create-user-modal').classList.remove('active');
+        document.getElementById('create-user-form').reset();
+        loadUsers();
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = 'Create Client Profile';
+    });
+  </script>
+  <div class="admin-sidebar-overlay"></div>
+</body>
+
+</html>

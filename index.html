@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDB Global Federal Credit Union | Where Your Dreams Grow Safely!</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    /* Custom brand color scheme for IDB Global FCU */
+    :root {
+      --primary: #006991;
+      --primary-dark: #005a7c;
+      --primary-light: #38bdf8;
+      --accent: #10b981;
+      --accent-glow: rgba(0, 105, 145, 0.2);
+    }
+
+    body {
+      background: #ffffff;
+      color: #374151;
+      overflow-x: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+
+    p {
+      color: #6b7280;
+    }
+
+    /* Top Routing Bar */
+    .top-routing-bar {
+      background: #005a7c;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1001;
+    }
+
+    .top-routing-bar a {
+      color: white;
+      text-decoration: none;
+      margin-left: 16px;
+      transition: opacity 0.2s;
+    }
+
+    .top-routing-bar a:hover {
+      opacity: 0.8;
+    }
+
+    /* Hero Section with animated gradients matching IDB Global FCU colors */
+    .hero-section {
+      position: relative;
+      padding: 200px 0 120px 0;
+      background: radial-gradient(circle at 80% 20%, rgba(0, 105, 145, 0.08) 0%, transparent 60%),
+                  radial-gradient(circle at 15% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+                  #ffffff;
+      overflow: hidden;
+    }
+
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="2" cy="2" r="1" fill="rgba(0,105,145,0.04)"/></svg>');
+      pointer-events: none;
+    }
+
+    .nav-header {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      position: fixed;
+      top: 34px; /* Space for the top routing bar */
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 14px 0;
+      transition: all 0.3s ease;
+    }
+
+    .nav-header.scrolled {
+      padding: 10px 0;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand-logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #006991;
+    }
+
+    .brand-logo-img {
+      height: 38px;
+      object-fit: contain;
+    }
+
+    /* Floating particles background */
+    .bg-particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--primary);
+      opacity: 0.3;
+      border-radius: 50%;
+      animation: float linear infinite;
+      pointer-events: none;
+    }
+
+    /* Luxury visual composition container */
+    .hero-visual-wrapper {
+      position: relative;
+      width: 100%;
+      height: 450px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1000px;
+    }
+
+    /* Glow backdrop */
+    .visual-glow {
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(0, 105, 145, 0.15) 0%, transparent 70%);
+      filter: blur(40px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Beautiful Dashboard Mockup Layer */
+    .hero-dashboard-img {
+      position: absolute;
+      width: 85%;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 105, 145, 0.12);
+      border: 1px solid rgba(0, 105, 145, 0.1);
+      transform: rotate(-3deg) translateY(10px) translateZ(-50px);
+      z-index: 1;
+      opacity: 0.95;
+      transition: all 0.5s ease;
+    }
+
+    .hero-visual-wrapper:hover .hero-dashboard-img {
+      transform: rotate(-1deg) translateY(0) translateZ(-30px);
+      opacity: 1;
+    }
+
+    /* 3D Interactive Virtual Visa Card */
+    .interactive-card {
+      position: absolute;
+      width: 320px;
+      height: 200px;
+      background: linear-gradient(135deg, #005a7c 0%, #002d3e 100%);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 15px 35px rgba(0, 90, 124, 0.25);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: white;
+      transform: rotate(6deg) translateY(-30px) translateX(30px) translateZ(50px);
+      z-index: 2;
+      transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+      cursor: pointer;
+      transform-style: preserve-3d;
+    }
+
+    .interactive-card:hover {
+      box-shadow: 0 25px 45px rgba(0, 90, 124, 0.35);
+    }
+
+    .interactive-card * {
+      transform: translateZ(20px);
+    }
+
+    .card-chip {
+      width: 45px;
+      height: 35px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      border-radius: 6px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-chip::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 3px;
+    }
+
+    /* Feature Cards Section */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      padding: 40px 0;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border: 1px solid rgba(0, 105, 145, 0.08);
+      border-radius: 24px;
+      padding: 40px 32px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(800px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(0, 105, 145, 0.04), transparent 40%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 105, 145, 0.25);
+      background: #ffffff;
+      box-shadow: 0 20px 40px rgba(0, 105, 145, 0.08);
+    }
+
+    .feature-card * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: rgba(0, 105, 145, 0.08);
+      border: 1px solid rgba(0, 105, 145, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: #006991;
+      font-size: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 8px 20px rgba(0, 105, 145, 0.25);
+    }
+
+    /* Statistics Section */
+    .stat-section {
+      background: rgba(0, 105, 145, 0.03);
+      border-top: 1px solid rgba(0, 105, 145, 0.06);
+      border-bottom: 1px solid rgba(0, 105, 145, 0.06);
+      padding: 60px 0;
+    }
+
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #005a7c, #006991);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    /* Interactive Showcase Section */
+    .showcase-section {
+      padding: 100px 0;
+      position: relative;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    @media (max-width: 991px) {
+      .showcase-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+    }
+
+    .showcase-image-container {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 105, 145, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 105, 145, 0.06);
+      background: #ffffff;
+    }
+
+    .showcase-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .showcase-image-container:hover .showcase-image {
+      transform: scale(1.05);
+    }
+
+    /* Live Currency Demo Widget */
+    .currency-widget {
+      background: #ffffff;
+      border: 1px solid rgba(0, 105, 145, 0.12);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 15px 35px rgba(0, 105, 145, 0.05);
+    }
+
+    /* Custom Button Overrides for Brand matching */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+      box-shadow: 0 4px 15px rgba(0, 105, 145, 0.25) !important;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(0, 105, 145, 0.35) !important;
+    }
+
+    /* Footer styling */
+    .footer-section {
+      background: #091a21;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 80px 0 30px 0;
+      color: #94a3b8;
+    }
+
+    .footer-section h4 {
+      color: #ffffff;
+    }
+
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Routing Utility Bar -->
+  <div class="top-routing-bar">
+    <div class="container flex-between">
+      <div>
+        <span>Routing Number/ABA: <strong>254074183</strong></span>
+      </div>
+      <div class="flex items-center">
+        <a href="https://www.idbglobalfcu.org/contact" target="_blank"><i class="ph-bold ph-phone"></i> Contact</a>
+        <a href="https://www.idbglobalfcu.org/branch-locations" target="_blank"><i class="ph-bold ph-map-pin"></i> Locations</a>
+        <a href="#" style="font-weight: 700; color: #38bdf8;">EN</a>
+        <a href="#" style="opacity: 0.7;">ES</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <header class="nav-header" id="navHeader">
+    <div class="container flex-between">
+      <a href="index.html" class="brand-logo-container">
+        <img src="logo.png" alt="IDB Global FCU Logo" class="brand-logo-img">
+        <span style="font-weight: 800; font-size: 1.35rem; letter-spacing: 0.5px; color: #006991;">IDB Global FCU</span>
+      </a>
+      
+      <nav class="flex gap-24 items-center">
+        <a href="index.html" class="text-sm font-semibold hover:text-primary" style="color: #374151;">Home</a>
+        <a href="login.html" class="btn btn-ghost" style="padding: 8px 20px; border-color: rgba(0,105,145,0.2); color: #006991;">Sign In</a>
+        <a href="register.html" class="btn btn-primary" style="padding: 10px 24px;">Open Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="bg-particles" id="particlesContainer"></div>
+    <div class="container grid grid-2 gap-48 items-center" style="min-height: 75vh; position: relative; z-index: 2;">
+      <div class="animate-fade-up">
+        <div class="badge badge-success mb-16" style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); font-weight: 600;"><i class="ph-bold ph-shield-check"></i> NCUA Insured Institution</div>
+        <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.15; margin-bottom: 24px; font-weight: 800; color: #005a7c;">Where Your <span style="background: linear-gradient(135deg, #006991, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Dreams</span> Grow Safely!</h1>
+        <p class="text-lg mb-32" style="max-width: 520px; line-height: 1.7; font-size: 1.1rem; color: #4b5563;">Founded in 1961, IDB Global Federal Credit Union has been serving the IDB community for over six decades. With more than $825 million in assets, we are your safe, sound, and trusted financial partner — wherever you are.</p>
+        <div class="flex gap-16 items-center">
+          <a href="register.html" class="btn btn-primary btn-lg" style="padding: 16px 32px; border-radius: 14px;">
+            <span>Get Started</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </a>
+          <a href="login.html" class="btn btn-ghost btn-lg" style="padding: 16px 32px; border-radius: 14px; border-color: rgba(0,105,145,0.25); color: #006991;">Client Portal</a>
+        </div>
+      </div>
+      
+      <!-- Premium Multi-Layer Visual -->
+      <div class="hero-visual-wrapper animate-scale-in delay-2">
+        <div class="visual-glow"></div>
+        <img src="assets/images/hero_dashboard.png" alt="IDB Global FCU Dashboard Mockup" class="hero-dashboard-img">
+        
+        <!-- Interactive Card Face -->
+        <div class="interactive-card" id="tiltCard">
+          <div class="flex-between">
+            <div class="flex items-center gap-8">
+              <i class="ph-fill ph-bank" style="font-size: 1.4rem; color: white;"></i>
+              <span style="font-weight: 800; font-size: 0.95rem; letter-spacing: 0.5px;">IDB GLOBAL FCU</span>
+            </div>
+            <span style="font-size: 0.6rem; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase;">Visa Gold</span>
+          </div>
+          <div class="card-chip"></div>
+          <div>
+            <div style="font-family: monospace; font-size: 1.3rem; letter-spacing: 3px; margin-bottom: 8px;">•••• •••• •••• 9821</div>
+            <div class="flex-between" style="align-items: flex-end;">
+              <div>
+                <div style="font-size: 0.5rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Card Holder</div>
+                <div style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 600;">PREMIUM MEMBER</div>
+              </div>
+              <span style="font-weight: 800; font-style: italic; font-size: 1.2rem; opacity: 0.9;">VISA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics -->
+  <section class="stat-section">
+    <div class="container">
+      <div class="stats-container">
+        <div class="scroll-reveal">
+          <div class="stat-number count-up" data-target="15000">0</div>
+          <div class="text-sm uppercase tracking-wider" style="color: #6b7280; font-weight: 600;">Active Members</div>
+        </div>
+        <div class="scroll-reveal">
+          <div class="stat-number count-up" data-target="825">0</div>
+          <div class="text-sm uppercase tracking-wider" style="color: #6b7280; font-weight: 600;">Million USD in Assets</div>
+        </div>
+        <div class="scroll-reveal">
+          <div class="stat-number count-up" data-target="99">0</div>
+          <div class="text-sm uppercase tracking-wider" style="color: #6b7280; font-weight: 600;">% Satisfaction Rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Smart Features Grid -->
+  <section style="padding: 100px 0; background: #ffffff;">
+    <div class="container">
+      <div class="text-center mb-48 scroll-reveal">
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #005a7c;">Smart Features for Smart Banking</h2>
+        <p style="color: #6b7280; max-width: 600px; margin: 12px auto 0 auto;">Everything you need to control your funds locally or internationally. Fully secure, fully automated.</p>
+      </div>
+
+      <div class="features-grid" id="featuresGrid">
+        <!-- Feature 1 -->
+        <div class="feature-card scroll-reveal">
+          <div class="feature-icon-wrapper">
+            <i class="ph-bold ph-credit-card"></i>
+          </div>
+          <h3 class="mb-12" style="color: #005a7c;">Visa Credit Cards</h3>
+          <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6;">Generate instant Visa virtual credit cards directly from your dashboard with customized names for secure, private online purchases.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card scroll-reveal">
+          <div class="feature-icon-wrapper">
+            <i class="ph-bold ph-currency-circle-dollar"></i>
+          </div>
+          <h3 class="mb-12" style="color: #005a7c;">29 Global Currencies</h3>
+          <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6;">Manage balances and make transactions in 29 different currencies. Transfer and exchange instantly with extremely competitive live rates.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card scroll-reveal">
+          <div class="feature-icon-wrapper">
+            <i class="ph-bold ph-paper-plane-tilt"></i>
+          </div>
+          <h3 class="mb-12" style="color: #005a7c;">Secure Wire Transfers</h3>
+          <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6;">Send domestic or international transfers safely using local routing numbers. Get real-time system approval and dashboard status updates.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Demo & Cybersecurity Showcase -->
+  <section class="showcase-section" style="background: rgba(0, 105, 145, 0.02); border-top: 1px solid rgba(0,105,145,0.05); border-bottom: 1px solid rgba(0,105,145,0.05);">
+    <div class="container">
+      <div class="showcase-grid">
+        <!-- Left Column: Copy & Currency Demo -->
+        <div class="scroll-reveal">
+          <div class="badge badge-success mb-16" style="background: rgba(0, 105, 145, 0.08); color: #006991; border: 1px solid rgba(0, 105, 145, 0.15); font-weight: 600;"><i class="ph-bold ph-lightning"></i> Real-time Rates Preview</div>
+          <h2 style="font-size: 2.25rem; font-weight: 800; color: #005a7c; line-height: 1.2; margin-bottom: 20px;">Exchange globally with zero hidden fees.</h2>
+          <p style="color: #6b7280; margin-bottom: 32px; line-height: 1.7;">Our transparent currency converter demonstrates how quickly your funds can be re-routed. Play with the dynamic calculator on the right to see simulated conversions instantly.</p>
+          
+          <div class="flex gap-24" style="margin-top: 24px;">
+            <div class="flex items-center gap-12">
+              <i class="ph-bold ph-check" style="color: var(--primary); font-size: 1.25rem;"></i>
+              <span style="font-weight: 600; color: #374151;">Instant swaps</span>
+            </div>
+            <div class="flex items-center gap-12">
+              <i class="ph-bold ph-check" style="color: var(--primary); font-size: 1.25rem;"></i>
+              <span style="font-weight: 600; color: #374151;">Interbank rates</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive currency converter -->
+        <div class="scroll-reveal">
+          <div class="currency-widget">
+            <h3 style="color: #005a7c; margin-bottom: 20px;">Quick Rate Converter</h3>
+            <div class="form-group mb-16">
+              <label class="form-label" style="color: #6b7280;">You Send</label>
+              <div class="flex gap-8">
+                <input type="number" id="converterAmount" value="1000" class="form-input" style="background: #ffffff; border: 1px solid rgba(0,105,145,0.2); color: #374151;">
+                <select id="converterFrom" class="form-select" style="background: #ffffff; border: 1px solid rgba(0,105,145,0.2); color: #374151; width: 120px;">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="CAD">CAD ($)</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex-center mb-16" style="cursor: pointer;" id="swapCurrencies">
+              <i class="ph-bold ph-arrows-down-up" style="color: var(--primary); font-size: 1.5rem;"></i>
+            </div>
+            <div class="form-group mb-24">
+              <label class="form-label" style="color: #6b7280;">You Receive</label>
+              <div class="flex gap-8">
+                <input type="text" id="converterResult" readonly class="form-input" style="background: #f9fafb; border: 1px solid rgba(0,105,145,0.1); color: #10b981; font-weight: bold;">
+                <select id="converterTo" class="form-select" style="background: #ffffff; border: 1px solid rgba(0,105,145,0.2); color: #374151; width: 120px;">
+                  <option value="EUR">EUR (€)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="JPY">JPY (¥)</option>
+                </select>
+              </div>
+            </div>
+            <div class="text-xs text-muted text-center" style="color: #94a3b8;">Rates are simulated based on standard market API variables.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cybersecurity showcase section -->
+  <section style="padding: 100px 0; background: #ffffff;">
+    <div class="container">
+      <div class="showcase-grid">
+        <!-- Left: Image -->
+        <div class="scroll-reveal showcase-image-container">
+          <img src="assets/images/security_vault.png" alt="IDB Global FCU Vault Security" class="showcase-image">
+        </div>
+        <!-- Right: Content -->
+        <div class="scroll-reveal">
+          <div class="badge badge-success mb-16" style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); font-weight: 600;"><i class="ph-bold ph-shield-check"></i> Cybersec Grade 4</div>
+          <h2 style="font-size: 2.25rem; font-weight: 800; color: #005a7c; line-height: 1.2; margin-bottom: 20px;">Guaranteed Privacy. Ironclad Security.</h2>
+          <p style="color: #6b7280; line-height: 1.7; margin-bottom: 24px;">At IDB Global Federal Credit Union, security is not an afterthought. We implement multi-layered encryption, dual-factor authentication frameworks, and secure isolated database policies to defend your assets against unauthorized access.</p>
+          <ul class="flex-col gap-12" style="list-style: none;">
+            <li class="flex items-center gap-12" style="color: #374151;"><i class="ph-fill ph-check-circle" style="color: #10b981;"></i> AES-256 GCM Database Level Encryption</li>
+            <li class="flex items-center gap-12" style="color: #374151;"><i class="ph-fill ph-check-circle" style="color: #10b981;"></i> Automatic security timeouts and sandbox constraints</li>
+            <li class="flex items-center gap-12" style="color: #374151;"><i class="ph-fill ph-check-circle" style="color: #10b981;"></i> Dual authorization requirements for swift wire routing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-section">
+    <div class="container">
+      <div class="grid grid-3 gap-32 mb-48">
+        <div>
+          <a href="index.html" class="brand-logo-container mb-16" style="color: white;">
+            <img src="logo.png" alt="IDB Global FCU Logo" style="height: 30px; filter: brightness(0) invert(1);">
+            <span style="font-weight: 800; font-size: 1.2rem; color: white; margin-left: 8px;">IDB Global FCU</span>
+          </a>
+          <p class="text-sm" style="color: #94a3b8;">Premium banking services built on trust, convenience, and high-performance digital tools.</p>
+        </div>
+        <div>
+          <h4 class="mb-16">Bank Information</h4>
+          <p class="text-sm mb-8" style="color: #94a3b8;">Routing Number / ABA: <span style="font-weight: bold; color: white;">254074183</span></p>
+          <p class="text-sm" style="color: #94a3b8;">Address: 1300 New York Ave NW, Washington, DC 20577</p>
+        </div>
+        <div>
+          <h4 class="mb-16">Secure Banking</h4>
+          <p class="text-sm" style="color: #94a3b8;">We use top-tier SSL encryption, sandboxed transactions, and secure offline databases to guarantee user privacy.</p>
+        </div>
+      </div>
+      
+      <div class="flex-between" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 24px;">
+        <span class="text-xs">&copy; 2026 IDB Global Federal Credit Union. All rights reserved. Equal Housing Lender. NCUA Insured.</span>
+        <div class="flex gap-16 text-xs">
+          <a href="#" class="hover:text-white" style="color: #94a3b8;">Privacy Policy</a>
+          <a href="#" class="hover:text-white" style="color: #94a3b8;">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll Reveal, Parallax Particles, Interactive 3D tilt card and Currency converter scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Intersection Observer for Scroll Reveal
+      const revealElements = document.querySelectorAll('.scroll-reveal');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            
+            // Trigger count-up if card contains count-up
+            const countElements = e.target.querySelectorAll('.count-up');
+            countElements.forEach(triggerCountUp);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      revealElements.forEach(el => observer.observe(el));
+      
+      // Function to animate number counters
+      function triggerCountUp(el) {
+        if (el.classList.contains('counted')) return;
+        el.classList.add('counted');
+        
+        const target = parseInt(el.getAttribute('data-target'));
+        const duration = 2000;
+        const startTime = performance.now();
+        
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 4); // Quart ease-out
+          const current = Math.floor(eased * target);
+          
+          el.textContent = current.toLocaleString() + (target === 15000 ? '+' : (target === 99 ? '%' : ''));
+          
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          } else {
+            el.textContent = target.toLocaleString() + (target === 15000 ? '+' : (target === 99 ? '%' : ''));
+          }
+        }
+        requestAnimationFrame(update);
+      }
+
+      // 2. Nav scroll background change
+      const navHeader = document.getElementById('navHeader');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+          navHeader.classList.add('scrolled');
+        } else {
+          navHeader.classList.remove('scrolled');
+        }
+      });
+
+      // 3. Floating background particles
+      const particlesContainer = document.getElementById('particlesContainer');
+      if (particlesContainer) {
+        const particleCount = 20;
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.top = Math.random() * 100 + '%';
+          const size = Math.random() * 4 + 2;
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+          particle.style.animationDelay = Math.random() * -20 + 's';
+          particlesContainer.appendChild(particle);
+        }
+      }
+
+      // 4. 3D Card Tilt Effect
+      const card = document.getElementById('tiltCard');
+      if (card) {
+        document.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const cardCenterX = rect.left + rect.width / 2;
+          const cardCenterY = rect.top + rect.height / 2;
+          
+          // Calculate distance from mouse to card center
+          const angleX = (e.clientY - cardCenterY) / 18;
+          const angleY = (cardCenterX - e.clientX) / 18;
+          
+          // Restrict max rotation angle
+          const maxRotation = 15;
+          const clampedX = Math.min(Math.max(angleX, -maxRotation), maxRotation);
+          const clampedY = Math.min(Math.max(angleY, -maxRotation), maxRotation);
+          
+          card.style.transform = `perspective(1000px) rotateX(${clampedX}deg) rotateY(${clampedY}deg) rotateZ(6deg) translateY(-30px) translateX(30px) translateZ(50px)`;
+        });
+        
+        // Reset tilt on mouse leave
+        document.addEventListener('mouseleave', () => {
+          card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) rotateZ(6deg) translateY(-30px) translateX(30px) translateZ(50px)`;
+          card.style.transition = 'transform 0.5s ease';
+        });
+        
+        card.addEventListener('mouseenter', () => {
+          card.style.transition = 'none';
+        });
+      }
+
+      // 5. Grid cards mouse hover radial light effect
+      const grid = document.getElementById('featuresGrid');
+      if (grid) {
+        grid.addEventListener('mousemove', (e) => {
+          const cards = grid.querySelectorAll('.feature-card');
+          cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+          });
+        });
+      }
+
+      // 6. Live Currency converter logic (offline rates simulation)
+      const rates = {
+        USD: { EUR: 0.93, GBP: 0.79, CAD: 1.37, JPY: 159.2 },
+        EUR: { USD: 1.07, GBP: 0.85, CAD: 1.47, JPY: 171.1 },
+        GBP: { USD: 1.27, EUR: 1.18, CAD: 1.74, JPY: 201.8 },
+        CAD: { USD: 0.73, EUR: 0.68, GBP: 0.57, JPY: 116.1 }
+      };
+
+      const converterAmount = document.getElementById('converterAmount');
+      const converterFrom = document.getElementById('converterFrom');
+      const converterTo = document.getElementById('converterTo');
+      const converterResult = document.getElementById('converterResult');
+      const swapCurrencies = document.getElementById('swapCurrencies');
+
+      function calculateConversion() {
+        const amount = parseFloat(converterAmount.value) || 0;
+        const from = converterFrom.value;
+        const to = converterTo.value;
+
+        if (from === to) {
+          converterResult.value = amount.toFixed(2) + ' ' + to;
+          return;
+        }
+
+        const rate = rates[from]?.[to] || 1;
+        const result = amount * rate;
+        
+        let symbol = '';
+        if (to === 'USD' || to === 'CAD') symbol = '$';
+        else if (to === 'EUR') symbol = '€';
+        else if (to === 'GBP') symbol = '£';
+        else if (to === 'JPY') symbol = '¥';
+
+        converterResult.value = symbol + ' ' + result.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + to;
+      }
+
+      if (converterAmount && converterFrom && converterTo && converterResult) {
+        converterAmount.addEventListener('input', calculateConversion);
+        converterFrom.addEventListener('change', calculateConversion);
+        converterTo.addEventListener('change', calculateConversion);
+        
+        swapCurrencies.addEventListener('click', () => {
+          const temp = converterFrom.value;
+          converterFrom.value = converterTo.value;
+          converterTo.value = temp;
+          calculateConversion();
+        });
+        
+        calculateConversion();
+      }
+    });
+  </script>
+
+  <!-- Load support widget -->
+  <script type="module">
+    import { initSupportWidget } from './assets/js/support-widget.js';
+    if (typeof initSupportWidget === 'function') {
+      initSupportWidget();
+    }
+  </script>
+</body>
+</html>

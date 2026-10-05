@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Approvals | Admin Portal</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+</head>
+<body class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-close"><i class="ph-bold ph-x"></i></div>
+    <div class="admin-sidebar-header">
+      <div class="flex items-center gap-12 mb-8">
+        <div class="brand-logo" style="width: 32px; height: 32px; background: var(--danger); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="ph-fill ph-shield-check text-white"></i>
+        </div>
+        <div class="font-bold">Staff Portal</div>
+      </div>
+      <div class="admin-badge">Admin Access</div>
+    </div>
+    
+    <nav class="admin-sidebar-nav">
+      <div style="font-size: 0.65rem; color: var(--text-500); text-transform: uppercase; margin: 12px 12px 4px; font-weight: bold;">Core Management</div>
+      <a href="dashboard.html" class="nav-item">
+        <i class="ph-bold ph-squares-four text-lg"></i> System Overview
+      </a>
+      <a href="users.html" class="nav-item">
+        <i class="ph-bold ph-users text-lg"></i> Client Management
+      </a>
+      <a href="transfers.html" class="nav-item">
+        <i class="ph-bold ph-arrows-left-right text-lg"></i> Transfer Approvals
+      </a>
+      <a href="kyc-review.html" class="nav-item">
+        <i class="ph-bold ph-identification-card text-lg"></i> KYC Reviews
+      </a>
+      <a href="cards.html" class="nav-item" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-400); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-credit-card text-lg"></i> Card Management
+      </a>
+      <a href="loans.html" class="nav-item active" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-100); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-piggy-bank text-lg"></i> Loan Approvals
+      </a>
+    </nav>
+
+    <div style="padding: 16px; border-top: 1px solid var(--border);">
+      <div class="flex items-center gap-12" style="cursor: pointer;" onclick="document.getElementById('logout-btn').click()">
+        <img src="https://ui-avatars.com/api/?name=Admin" id="admin-avatar" class="avatar avatar-sm">
+        <div style="flex: 1; overflow: hidden;">
+          <div id="admin-name" style="font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</div>
+          <div id="admin-role" style="font-size: 0.7rem; color: var(--text-400); text-transform: capitalize;">Staff</div>
+        </div>
+        <i class="ph-bold ph-sign-out text-muted" id="logout-btn"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <button class="admin-sidebar-toggle">
+        <i class="ph-bold ph-list"></i>
+      </button>
+      <div style="font-size: 1.1rem; font-weight: bold;">Loan Management Workflow</div>
+      <div class="filter-bar border-none bg-transparent p-0">
+        <button class="filter-chip active" id="filter-pending" onclick="filterLoans('pending')">Pending</button>
+        <button class="filter-chip" id="filter-active" onclick="filterLoans('active')">Active</button>
+        <button class="filter-chip" id="filter-all" onclick="filterLoans('all')">All</button>
+      </div>
+    </header>
+
+    <div class="admin-page-body">
+      
+      <div class="admin-table-card">
+        <div class="table-wrapper">
+          <table id="loans-table">
+            <thead>
+              <tr>
+                <th>Ref / Date</th>
+                <th>Client Details</th>
+                <th>Loan Details</th>
+                <th>Repayment Term</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="loans-tbody">
+              <tr><td colspan="6" class="text-center py-24 text-muted"><i class="ph-bold ph-spinner spinner"></i> Loading loans...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireAdminAuth, logout } from '../assets/js/auth.js';
+    import { dbSelect, dbUpdate, dbInsert, getSupabase } from '../assets/js/firebase.js';
+    import { formatCurrency, showToast, initSidebar, generateSwiftRef } from '../assets/js/utils.js';
+
+    let currentFilter = 'pending';
+    let usersMap = {};
+    let accountsMap = {};
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const admin = await requireAdminAuth();
+      if (admin) {
+        document.getElementById('admin-name').textContent = admin.full_name;
+        document.getElementById('admin-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.full_name)}&background=ef4444&color=fff`;
+      }
+      document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logout(true);
+      });
+      initSidebar();
+      await loadUsersAndAccounts();
+      await loadLoans();
+
+      window.filterLoans = (filter) => {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`filter-${filter}`).classList.add('active');
+        loadLoans();
+      };
+
+      window.approveLoan = async (loanId) => {
+        if (!confirm("Are you sure you want to APPROVE this loan application? Funds will be disbursed immediately.")) return;
+        
+        const db = getSupabase();
+        
+        // 1. Fetch loan details
+        const { data: loan } = await db.from('loans').select('*').eq('id', loanId).single();
+        if (!loan) {
+          showToast("Loan details not found", "danger");
+          return;
+        }
+
+        // 2. Fetch checking account for user
+        const { data: accounts } = await db.from('accounts').select('*').eq('user_id', loan.user_id).eq('account_type', 'checking');
+        if (!accounts || accounts.length === 0) {
+          showToast("User checking account not found", "danger");
+          return;
+        }
+        const account = accounts[0];
+
+        // 3. Fetch balance for the checking account
+        const { data: balances } = await db.from('balances').select('*').eq('account_id', account.id);
+        if (!balances || balances.length === 0) {
+          showToast("User account balance details not found", "danger");
+          return;
+        }
+        const bal = balances[0];
+
+        // 4. Update balance: add loan amount
+        const newAvailable = Number(bal.available || 0) + Number(loan.amount);
+        const { error: balError } = await dbUpdate('balances', { available: newAvailable }, { id: bal.id });
+        if (balError) {
+          showToast("Failed to disburse funds to balance: " + balError.message, "danger");
+          return;
+        }
+
+        // 5. Create credit transaction for disbursement
+        const txRef = 'TX-LN-' + Math.floor(100000 + Math.random() * 900000);
+        await dbInsert('transactions', {
+          account_id: account.id,
+          type: 'credit',
+          amount: loan.amount,
+          currency: account.currency || 'USD',
+          description: `Loan Disbursed - Ref: ${loan.loan_ref}`,
+          category: 'loan',
+          status: 'completed',
+          ref_no: txRef
+        });
+
+        // 6. Update loan status to 'active'
+        await dbUpdate('loans', {
+          status: 'active',
+          disbursed_at: new Date().toISOString(),
+          next_payment_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }, { id: loanId });
+
+        // 7. Insert Notification for the user
+        await dbInsert('notifications', {
+          user_id: loan.user_id,
+          title: 'Loan Application Approved',
+          message: `Congratulations! Your loan of ${formatCurrency(loan.amount, account.currency)} has been approved. Funds have been deposited.`,
+          type: 'success'
+        });
+
+        showToast("Loan successfully approved and funds disbursed!", "success");
+        loadLoans();
+      };
+
+      window.rejectLoan = async (loanId) => {
+        if (!confirm("Are you sure you want to REJECT this loan application?")) return;
+
+        const db = getSupabase();
+        const { data: loan } = await db.from('loans').select('*').eq('id', loanId).single();
+        
+        await dbUpdate('loans', { status: 'rejected' }, { id: loanId });
+
+        if (loan) {
+          await dbInsert('notifications', {
+            user_id: loan.user_id,
+            title: 'Loan Application Denied',
+            message: `Unfortunately, your request for a ${formatCurrency(loan.amount, 'USD')} loan has been rejected after review.`,
+            type: 'error'
+          });
+        }
+
+        showToast("Loan request rejected.", "warning");
+        loadLoans();
+      };
+    });
+
+    async function loadUsersAndAccounts() {
+      const { data: users } = await dbSelect('users');
+      if (users) {
+        users.forEach(u => {
+          usersMap[u.id] = u;
+        });
+      }
+
+      const { data: accounts } = await dbSelect('accounts');
+      if (accounts) {
+        accounts.forEach(a => {
+          accountsMap[a.id] = a;
+        });
+      }
+    }
+
+    async function loadLoans() {
+      const tbody = document.getElementById('loans-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-24 text-muted"><i class="ph-bold ph-spinner spinner"></i> Loading loans...</td></tr>';
+
+      const { data: loans, error } = await dbSelect('loans', { order: { column: 'created_at', ascending: false } });
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-24 text-danger">Error: ${error.message}</td></tr>`;
+        return;
+      }
+
+      let filtered = loans || [];
+      if (currentFilter === 'pending') {
+        filtered = filtered.filter(l => l.status === 'pending');
+      } else if (currentFilter === 'active') {
+        filtered = filtered.filter(l => l.status === 'active');
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-24 text-muted">No ${currentFilter !== 'all' ? currentFilter : ''} loans found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach(loan => {
+        const user = usersMap[loan.user_id] || { full_name: 'Unknown User', email: 'N/A' };
+        const acct = accountsMap[loan.account_id] || { currency: 'USD' };
+        
+        let statusBadge = '';
+        if (loan.status === 'pending') statusBadge = '<span class="badge badge-warning">Pending Review</span>';
+        else if (loan.status === 'active') statusBadge = '<span class="badge badge-success">Active / Disbursed</span>';
+        else if (loan.status === 'rejected') statusBadge = '<span class="badge badge-danger">Rejected</span>';
+        else statusBadge = `<span class="badge badge-neutral">${loan.status}</span>`;
+
+        let actionBtns = '-';
+        if (loan.status === 'pending') {
+          actionBtns = `
+            <div class="flex gap-8">
+              <button class="btn btn-success btn-sm" onclick="approveLoan('${loan.id}')"><i class="ph-bold ph-check"></i> Approve</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectLoan('${loan.id}')"><i class="ph-bold ph-x"></i> Reject</button>
+            </div>
+          `;
+        }
+
+        tbody.innerHTML += `
+          <tr class="align-middle">
+            <td>
+              <div style="font-weight: bold; font-family: monospace;">${loan.loan_ref || 'N/A'}</div>
+              <div style="font-size: 0.75rem; color: var(--text-500); margin-top: 4px;">${new Date(loan.created_at).toLocaleDateString()}</div>
+            </td>
+            <td>
+              <div style="font-weight: bold; color: white;">${user.full_name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-400);">${user.email}</div>
+            </td>
+            <td>
+              <div style="font-weight: bold; color: #38bdf8;">${formatCurrency(loan.amount, acct.currency)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-500); text-transform: capitalize; margin-top: 4px;">Type: ${loan.loan_type}</div>
+            </td>
+            <td>
+              <div style="font-weight: bold; color: white;">${loan.term_months} Months</div>
+              <div style="font-size: 0.75rem; color: var(--text-500); margin-top: 4px;">Pay: ${formatCurrency(loan.monthly_payment || 0, acct.currency)}/mo</div>
+            </td>
+            <td>${statusBadge}</td>
+            <td>${actionBtns}</td>
+          </tr>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>

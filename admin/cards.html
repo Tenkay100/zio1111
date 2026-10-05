@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Management | Admin Portal</title>
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+</head>
+<body class="admin-layout">
+
+  <!-- Admin Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-close"><i class="ph-bold ph-x"></i></div>
+    <div class="admin-sidebar-header">
+      <div class="flex items-center gap-12 mb-8">
+        <div class="brand-logo" style="width: 32px; height: 32px; background: var(--danger); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i class="ph-fill ph-shield-check text-white"></i>
+        </div>
+        <div class="font-bold">Staff Portal</div>
+      </div>
+      <div class="admin-badge">Admin Access</div>
+    </div>
+    
+    <nav class="admin-sidebar-nav">
+      <div style="font-size: 0.65rem; color: var(--text-500); text-transform: uppercase; margin: 12px 12px 4px; font-weight: bold;">Core Management</div>
+      <a href="dashboard.html" class="nav-item">
+        <i class="ph-bold ph-squares-four text-lg"></i> System Overview
+      </a>
+      <a href="users.html" class="nav-item">
+        <i class="ph-bold ph-users text-lg"></i> Client Management
+      </a>
+      <a href="transfers.html" class="nav-item">
+        <i class="ph-bold ph-arrows-left-right text-lg"></i> Transfer Approvals
+      </a>
+      <a href="kyc-review.html" class="nav-item">
+        <i class="ph-bold ph-identification-card text-lg"></i> KYC Reviews
+      </a>
+      <a href="cards.html" class="nav-item active" style="padding: 10px 12px; display: flex; gap: 10px; color: var(--text-100); text-decoration: none; border-radius: 8px; margin-bottom: 2px;">
+        <i class="ph-bold ph-credit-card text-lg"></i> Card Management
+      </a>
+      <a href="loans.html" class="nav-item">
+        <i class="ph-bold ph-piggy-bank text-lg"></i> Loan Approvals
+      </a>
+    </nav>
+    
+    <div style="padding: 16px; border-top: 1px solid var(--border);">
+      <div class="flex items-center gap-12" style="cursor: pointer;" onclick="document.getElementById('logout-btn').click()">
+        <img src="https://ui-avatars.com/api/?name=Admin&background=ef4444&color=fff" id="admin-avatar" class="avatar avatar-sm">
+        <div style="flex: 1; overflow: hidden;">
+          <div id="admin-name" style="font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Staff</div>
+          <div id="admin-role" style="font-size: 0.7rem; color: var(--text-400); text-transform: capitalize;">Admin Access</div>
+        </div>
+        <i class="ph-bold ph-sign-out text-muted" id="logout-btn"></i>
+      </div>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <button class="admin-sidebar-toggle">
+        <i class="ph-bold ph-list"></i>
+        <span style="font-size: 0.9rem; font-weight: 600; margin-left: 8px;">Menu</span>
+      </button>
+      <div>
+        <h2 style="font-size: 1.2rem; font-weight: 600;">Credit & Debit Card Controls</h2>
+        <p style="font-size: 0.8rem; color: var(--text-400);">View full card details, freeze accounts, or tap to hide details in the user portal.</p>
+      </div>
+      <div class="flex items-center gap-16">
+        <div class="admin-badge bg-warning bg-opacity-10 text-warning" id="pending-count">0 Pending</div>
+      </div>
+    </header>
+
+    <div class="admin-page-body">
+      
+      <div class="admin-table-card">
+        <div class="admin-table-header">
+          <div class="admin-table-title">All Credit & Virtual Cards</div>
+          <div class="admin-table-actions">
+            <span class="text-xs text-muted"><i class="ph-bold ph-info"></i> Toggling "Hide Details" masks the card number with asterisks in the client portal.</span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table w-full">
+            <thead>
+              <tr>
+                <th>Date Issued</th>
+                <th>Client Name / Email</th>
+                <th>Card Details</th>
+                <th>Security / CVV</th>
+                <th>Card Status</th>
+                <th>Portal Display</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cards-table">
+              <tr><td colspan="7" class="text-center text-muted py-24"><i class="ph-bold ph-spinner spinner"></i> Loading cards...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { requireAdminAuth, logout } from '../assets/js/auth.js';
+    import { getSupabase, dbSelect, dbUpdate, dbDelete, subscribeToTable } from '../assets/js/firebase.js';
+    import { formatDate, showToast, initSidebar } from '../assets/js/utils.js';
+
+    let db;
+    document.addEventListener('DOMContentLoaded', async () => {
+      const admin = await requireAdminAuth();
+      if (!admin) return;
+      
+      if (document.getElementById('admin-name')) document.getElementById('admin-name').textContent = admin.full_name;
+      if (document.getElementById('admin-avatar')) document.getElementById('admin-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.full_name)}&background=ef4444&color=fff`;
+
+      db = getSupabase();
+      document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logout(true);
+      });
+      await loadCards();
+      initSidebar();
+
+      subscribeToTable('cards', () => loadCards());
+      subscribeToTable('users', () => loadCards());
+    });
+
+    async function loadCards() {
+      const { data, error } = await dbSelect('cards', { order: { column: 'created_at', ascending: false } });
+
+      const tbody = document.getElementById('cards-table');
+      if (error || !data || data.length === 0) {
+        document.getElementById('pending-count').textContent = '0 Pending';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-24">No cards found in system.</td></tr>';
+        return;
+      }
+
+      const pendingCount = data.filter(c => c.status === 'blocked').length;
+      document.getElementById('pending-count').textContent = `${pendingCount} Pending`;
+      tbody.innerHTML = '';
+
+      const { data: users } = await dbSelect('users');
+      const usersMap = {};
+      if (users) users.forEach(u => usersMap[u.id] = u);
+
+      data.forEach(card => {
+        const userObj = usersMap[card.user_id];
+        const clientName = userObj ? userObj.full_name : (card.cardholder || 'Valued Member');
+        const clientEmail = userObj ? userObj.email : 'N/A';
+        const isHidden = card.hide_details === true || card.hide_details === 'true';
+
+        let statusBadge = '';
+        if (card.status === 'blocked') {
+          statusBadge = '<span class="badge badge-warning">Pending</span>';
+        } else if (card.status === 'frozen') {
+          statusBadge = '<span class="badge badge-danger">Frozen</span>';
+        } else if (card.status === 'active') {
+          statusBadge = '<span class="badge badge-success">Active</span>';
+        } else {
+          statusBadge = `<span class="badge badge-neutral">${card.status}</span>`;
+        }
+
+        const portalDisplayBadge = isHidden 
+          ? `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);"><i class="ph-bold ph-eye-slash"></i> Masked (******)</span>`
+          : `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);"><i class="ph-bold ph-eye"></i> Full Digits Visible</span>`;
+
+        let toggleHideBtn = isHidden
+          ? `<button class="btn btn-sm btn-ghost" style="color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" onclick="window.toggleCardVisibility('${card.id}', false)" title="Unhide Card in Client Portal"><i class="ph-bold ph-eye"></i> Show in Portal</button>`
+          : `<button class="btn btn-sm btn-ghost" style="color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="window.toggleCardVisibility('${card.id}', true)" title="Hide Card in Client Portal"><i class="ph-bold ph-eye-slash"></i> Hide in Portal</button>`;
+
+        let statusActionBtn = '';
+        if (card.status === 'blocked') {
+          statusActionBtn = `
+            <button class="btn btn-sm btn-success" onclick="window.updateCardStatus('${card.id}', 'active')"><i class="ph-bold ph-check"></i> Approve</button>
+            <button class="btn btn-sm btn-danger" onclick="window.updateCardStatus('${card.id}', 'cancelled')"><i class="ph-bold ph-x"></i> Reject</button>
+          `;
+        } else if (card.status === 'frozen') {
+          statusActionBtn = `<button class="btn btn-sm btn-primary" onclick="window.updateCardStatus('${card.id}', 'active')"><i class="ph-bold ph-play"></i> Unfreeze</button>`;
+        } else if (card.status === 'active') {
+          statusActionBtn = `<button class="btn btn-sm btn-warning" onclick="window.updateCardStatus('${card.id}', 'frozen')"><i class="ph-bold ph-pause"></i> Freeze</button>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatDate(card.created_at)}</td>
+          <td>
+            <div class="font-bold text-white">${clientName}</div>
+            <div class="text-xs text-muted">${clientEmail}</div>
+          </td>
+          <td>
+            <div style="font-family: monospace; font-size: 0.95rem; font-weight: bold; color: #38bdf8; letter-spacing: 1px;">${card.card_number}</div>
+            <div class="text-xs text-muted uppercase mt-2"><span class="badge badge-neutral" style="font-size: 0.65rem; padding: 2px 6px;">VISA</span> &bull; ${card.cardholder || clientName}</div>
+          </td>
+          <td>
+            <div class="text-xs"><strong>Exp:</strong> <span style="font-family: monospace;">${card.expiry || '--/--'}</span></div>
+            <div class="text-xs mt-2"><strong>CVV:</strong> <span style="font-family: monospace;">${card.cvv_hash || '---'}</span></div>
+          </td>
+          <td>${statusBadge}</td>
+          <td>${portalDisplayBadge}</td>
+          <td class="text-right">
+            <div class="flex gap-8 justify-end">
+              ${toggleHideBtn}
+              ${statusActionBtn}
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.toggleCardVisibility = async (cardId, hide) => {
+      const { error } = await dbUpdate('cards', { hide_details: hide }, { id: cardId });
+      if (error) {
+        showToast('Error updating visibility setting.', 'danger');
+      } else {
+        showToast(hide ? 'Card details are now masked (******) in user portal.' : 'Card details are now unmasked and visible in user portal.', 'success');
+        loadCards();
+      }
+    };
+
+    window.updateCardStatus = async (id, status) => {
+      const { error } = await dbUpdate('cards', { status }, { id });
+      if (error) {
+        showToast('Error updating card status', 'danger');
+      } else {
+        showToast('Card status updated to ' + status, 'success');
+        loadCards();
+      }
+    };
+
+    window.showToast = showToast;
+  </script>
+  <div class="admin-sidebar-overlay"></div>
+</body>
+</html>
