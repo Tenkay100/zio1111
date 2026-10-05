@@ -1045,6 +1045,19 @@
           type: 'success'
         });
 
+        // Send automated welcome email via EmailJS
+        try {
+          const { sendWelcomeEmail } = await import('../assets/js/email.js');
+          sendWelcomeEmail({
+            to_name: fullName,
+            to_email: email,
+            account_number: accountNumber,
+            currency: currency || 'USD'
+          }).catch(err => console.warn("EmailJS background send error:", err));
+        } catch (e) {
+          console.warn("Could not import email service:", e);
+        }
+
         showToast('Client profile created successfully!', 'success');
         document.getElementById('create-user-modal').classList.remove('active');
         document.getElementById('create-user-form').reset();

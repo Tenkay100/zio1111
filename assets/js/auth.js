@@ -330,8 +330,21 @@ export async function register(formData) {
       user_id: userId,
       title: 'Welcome to IDB Global Federal Credit Union!',
       message: 'Your account has been created successfully. Welcome aboard!',
-      type: 'info'
+      type: 'success'
     });
+
+    // Send automated welcome email via EmailJS
+    try {
+      const { sendWelcomeEmail } = await import('./email.js');
+      sendWelcomeEmail({
+        to_name: formData.fullName,
+        to_email: formData.email,
+        account_number: accountNumber,
+        currency: formData.currency || 'USD'
+      }).catch(err => console.warn("EmailJS background send error:", err));
+    } catch (e) {
+      console.warn("Could not import email service:", e);
+    }
 
     return { success: true, message: 'Account successfully created! Redirecting to sign in...', profile: userObj || { full_name: formData.fullName } };
   } catch (e) {
