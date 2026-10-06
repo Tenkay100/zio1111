@@ -131,6 +131,12 @@ async function loadDashboardStats() {
                 <button class="btn-icon-sm bg-[var(--bg-500)] text-success hover:bg-[var(--success)] hover:text-white" onclick="window.quickToggleKYC('${u.id}', '${u.kyc_status || 'pending'}')" title="Toggle KYC Approval">
                   <i class="ph-bold ph-shield-check"></i>
                 </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-warning hover:bg-[var(--warning)] hover:text-white" onclick="window.quickSendAnnouncement('${u.id}')" title="Send / Edit Personal Announcement">
+                  <i class="ph-bold ph-megaphone"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.quickClearAnnouncement('${u.id}')" title="Clean Personal Announcement">
+                  <i class="ph-bold ph-megaphone-simple-slash"></i>
+                </button>
                 <button class="btn-icon-sm bg-[var(--bg-500)] text-white hover:bg-[var(--primary)]" onclick="window.quickToggleStatus('${u.id}', '${u.status === 'active' ? 'suspended' : 'active'}')" title="Toggle Suspend / Active">
                   <i class="ph-bold ${u.status === 'active' ? 'ph-pause' : 'ph-play'}"></i>
                 </button>
@@ -252,6 +258,39 @@ window.quickToggleCardMask = async (userId) => {
   } else {
     showToast(newHide ? "Card details are now masked (******) in user portal." : "Card details are now unmasked and visible in user portal.", "success");
     loadDashboardStats();
+  }
+};
+
+window.quickSendAnnouncement = async (userId) => {
+  const { data: existing } = await dbSelect('notifications', { eq: { user_id: userId, title: 'System Announcement' } });
+  const currentMsg = existing && existing.length > 0 ? existing[0].message : "";
+  const msg = prompt("Enter personal announcement for this client:", currentMsg);
+  if (!msg) return;
+
+  if (existing && existing.length > 0) {
+    const { error } = await dbUpdate('notifications', { message: msg }, { id: existing[0].id });
+    if (!error) showToast("Personal announcement updated.", "success");
+    else showToast("Failed to update announcement.", "danger");
+  } else {
+    const { error } = await dbInsert('notifications', {
+      user_id: userId,
+      title: 'System Announcement',
+      message: msg,
+      type: 'warning'
+    });
+    if (!error) showToast("Personal announcement sent to client.", "success");
+    else showToast("Failed to send announcement.", "danger");
+  }
+};
+
+window.quickClearAnnouncement = async (userId) => {
+  if (!confirm("Clear this client's personal announcement?")) return;
+  const { error } = await dbDelete('notifications', { user_id: userId, title: 'System Announcement' });
+  if (!error) {
+    showToast("Personal announcement cleared successfully.", "success");
+    loadDashboardStats();
+  } else {
+    showToast("Failed to clear personal announcement.", "danger");
   }
 };
 

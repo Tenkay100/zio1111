@@ -409,8 +409,11 @@
                 <button class="btn-icon-sm bg-[var(--bg-500)] text-info hover:bg-[var(--info)] hover:text-white" onclick="window.openTransactions('${u.id}')" title="Edit Transactions & Backdate">
                   <i class="ph-bold ph-list-dashes"></i>
                 </button>
-                <button class="btn-icon-sm bg-[var(--bg-500)] text-warning hover:bg-[var(--warning)] hover:text-white" onclick="window.sendAnnouncement('${u.id}')" title="Send System Announcement Banner">
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-warning hover:bg-[var(--warning)] hover:text-white" onclick="window.sendAnnouncement('${u.id}')" title="Send / Edit Personal Announcement Banner">
                   <i class="ph-bold ph-megaphone"></i>
+                </button>
+                <button class="btn-icon-sm bg-[var(--bg-500)] text-danger hover:bg-[var(--danger)] hover:text-white" onclick="window.clearAnnouncement('${u.id}')" title="Clean / Remove Personal Announcement Banner">
+                  <i class="ph-bold ph-megaphone-simple-slash"></i>
                 </button>
                 <button class="btn-icon-sm bg-[var(--bg-500)] text-success hover:bg-[var(--success)] hover:text-white" onclick="window.approveKYCDirect('${u.id}')" title="Approve KYC (Unlock Account)">
                   <i class="ph-bold ph-shield-check"></i>
