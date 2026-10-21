@@ -1,12 +1,12 @@
 // ── IDB GLOBAL FEDERAL CREDIT UNION — FIREBASE CLIENT COMPAT ──
 // Replace these with your actual Firebase project credentials
 const firebaseConfig = {
-  apiKey: "AIzaSyC4R6WMLqlLA-toYMx7pmqaqocUeDPt0A4",
+  apiKey: "AIzaSyCkxf65BPMkTqwyWgqLg4pbrW4emxFDEsM",
   authDomain: "idbglobalfcuunion-f4829.firebaseapp.com",
   projectId: "idbglobalfcuunion-f4829",
   storageBucket: "idbglobalfcuunion-f4829.firebasestorage.app",
-  messagingSenderId: "614788315076",
-  appId: "1:614788315076:web:741ad1fed22b3be6e91691"
+  messagingSenderId: "976915619505",
+  appId: "1:976915619505:web:9510b7a708fd20ffa5cc90"
 };
 
 let db = null;
@@ -122,7 +122,7 @@ if (typeof window !== 'undefined' && typeof localStorage !== 'undefined' && !loc
   localStorage.setItem('aff_mock_pwd_pendinguser@idbglobalfcu.com', JSON.stringify('password123'));
 }
 
-const FORCE_LOCAL_STORAGE = true;
+const FORCE_LOCAL_STORAGE = false;
 
 export function initFirebase() {
   if (FORCE_LOCAL_STORAGE) {
