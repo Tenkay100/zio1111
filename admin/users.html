@@ -233,10 +233,13 @@
       await loadUsers();
       initSidebar();
 
-      // Realtime listeners for instant cross-tab / local updates
+      // Realtime listeners (Firestore onSnapshot) for cross-device sync
       subscribeToTable('users', () => loadUsers());
       subscribeToTable('accounts', () => loadUsers());
       subscribeToTable('balances', () => loadUsers());
+
+      // Fallback polling every 15 seconds - always catches new registrations
+      setInterval(() => loadUsers(), 15000);
 
       const searchInput = document.getElementById('user-search-input');
       if (searchInput) {
@@ -252,7 +255,7 @@
         showToast('No users available to export.', 'warning');
         return;
       }
-      let csv = "ID,Full Name,Email,Phone,Address,SSN,Account Number,Currency,Available Balance,Pending Balance,Status,KYC Status,Joined Date\n";
+      let csv = "ID,Full Name,Email,Phone,Address,ID Number,Account Number,Currency,Available Balance,Pending Balance,Status,KYC Status,Joined Date\n";
       allLoadedUsers.forEach(u => {
         const row = [
           `"${u.id || ''}"`,
@@ -372,7 +375,7 @@
                   <div class="user-row-name">${u.full_name}</div>
                   <div class="user-row-email">${u.email}</div>
                   <div class="text-xs text-muted mt-4">
-                    <strong>SSN:</strong> ${u.ssn || 'N/A'} &bull; <strong>Phone:</strong> ${u.phone || 'N/A'}
+                    <strong>ID:</strong> ${u.ssn || 'N/A'} &bull; <strong>Phone:</strong> ${u.phone || 'N/A'}
                   </div>
                   <div class="text-xs text-muted"><strong>Address:</strong> ${u.address || 'N/A'}</div>
                 </div>

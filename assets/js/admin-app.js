@@ -16,13 +16,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   initVolumeChart();
   initSidebar();
 
-  // Realtime subscriptions
+  // Realtime subscriptions (Firestore onSnapshot for cross-device sync)
   subscribeToTable('users', () => loadDashboardStats());
   subscribeToTable('accounts', () => loadDashboardStats());
   subscribeToTable('balances', () => loadDashboardStats());
   subscribeToTable('transfers', () => loadDashboardStats());
   subscribeToTable('kyc_documents', () => loadDashboardStats());
   subscribeToTable('notifications', () => loadAnnouncementStatus());
+
+  // Fallback polling every 15 seconds so new registrations always appear
+  setInterval(() => loadDashboardStats(), 15000);
 });
 
 function initAdminUI() {
@@ -105,7 +108,7 @@ async function loadDashboardStats() {
                 <div>
                   <div class="user-row-name">${u.full_name}</div>
                   <div class="user-row-email">${u.email}</div>
-                  <div class="text-xs text-muted"><strong>SSN:</strong> ${u.ssn || 'N/A'} &bull; <strong>Phone:</strong> ${u.phone || 'N/A'}</div>
+                  <div class="text-xs text-muted"><strong>ID:</strong> ${u.ssn || 'N/A'} &bull; <strong>Phone:</strong> ${u.phone || 'N/A'}</div>
                 </div>
               </div>
             </td>

@@ -122,7 +122,7 @@ async function loadAccountData() {
 
     // Subscribe to balance updates
     subscribeToTable('balances', (payload) => {
-      if (payload.new.account_id === currentAccount.id) {
+      if (payload.new && payload.new.account_id === currentAccount.id) {
         const available = Number(payload.new.available) - Number(payload.new.pending);
         document.getElementById('total-balance').textContent = formatCurrency(available, currentAccount.currency);
         document.getElementById('pending-balance').textContent = formatCurrency(payload.new.pending, currentAccount.currency);
@@ -158,8 +158,9 @@ async function loadAccountData() {
       if (cardCopyBtn) {
         if (!isHidden && card.card_number) {
           cardCopyBtn.classList.remove('hidden');
-          window.copyCardNumber = () => {
-            const { copyToClipboard } = import('./utils.js').then(m => m.copyToClipboard(card.card_number.replace(/\s/g, ''), 'Card number copied'));
+          window.copyCardNumber = async () => {
+            const { copyToClipboard } = await import('./utils.js');
+            await copyToClipboard(card.card_number.replace(/\s/g, ''), 'Card number copied');
           };
         } else {
           cardCopyBtn.classList.add('hidden');

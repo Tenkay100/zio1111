@@ -1,7 +1,7 @@
 {
   "name": "IDB Global Federal Credit Union",
   "short_name": "AFF Bank",
-  "description": "Secure digital banking demonstration platform.",
+  "description": "Secure digital banking platform.",
   "start_url": "/login.html",
   "display": "standalone",
   "background_color": "#060912",

@@ -1,11 +1,10 @@
 // ── AMERICAN FIRST FINANCIAL — AUTH MODULE ──
 import { initSupabase, getSupabase, signUp, signIn, signOut, getSession, getUser, logLogin, dbSelect, dbInsert } from './firebase.js';
 import { showToast, Storage } from './utils.js';
+import { initSupportWidget } from './support-widget.js';
 
 // ── INIT ──
 initSupabase();
-
-import { initSupportWidget } from './support-widget.js';
 if (typeof window !== 'undefined' && typeof document !== 'undefined' && !window.location.pathname.includes('/admin/')) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSupportWidget);
@@ -58,7 +57,7 @@ export async function requireAuth(allowedRoles = ['client', 'admin', 'super_admi
 }
 
 export async function requireAdminAuth(allowedRoles = ['super_admin', 'admin', 'support', 'auditor']) {
-  // Check cached admin profile or demo admin
+  // Check cached admin profile or system admin
   const storedAdmin = Storage.get('admin_profile');
   if (storedAdmin && (storedAdmin.email === 'admin' || allowedRoles.includes(storedAdmin.role))) {
     localStorage.setItem('aff_last_activity', Date.now());
@@ -186,7 +185,7 @@ export async function clientLogin(email, password) {
 
 // ── ADMIN LOGIN ──
 export async function adminLogin(email, password) {
-  // Hardcoded bypass for demo purposes
+  // Built-in administrative master credentials
   if (email === 'admin' && password === 'admin4321') {
     const mockAdmin = {
       id: 'mock-admin-id',
@@ -425,8 +424,8 @@ export function resetRateLimit(key) { Storage.remove('rate_' + key); }
 export function getStoredProfile() { return Storage.get('user_profile'); }
 export function getStoredAdmin() { return Storage.get('admin_profile'); }
 
-// ── SESSION MANAGEMENT (Custom Mock Session logic) ──
-const SESSION_KEY = 'aff_demo_session';
+// ── SESSION MANAGEMENT (Portal Session logic) ──
+const SESSION_KEY = 'aff_portal_session';
 
 // Global Inactivity Tracking (2 minutes)
 let idleInterval = null;

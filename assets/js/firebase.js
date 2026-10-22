@@ -367,11 +367,6 @@ export class FirebaseQueryBuilder {
       return this.executeLocalStorageFallback();
     }
 
-    // If the table is not 'users', execute offline using LocalStorage
-    if (this.table !== 'users') {
-      return this.executeLocalStorageFallback();
-    }
-
     const fApp = getFirebase();
     if (!fApp) {
       return this.executeLocalStorageFallback();
@@ -489,7 +484,7 @@ export class FirebaseQueryBuilder {
       };
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Firestore timeout")), 1500)
+        setTimeout(() => reject(new Error("Firestore timeout")), 8000)
       );
 
       return await Promise.race([runQuery(), timeoutPromise]);
@@ -511,14 +506,14 @@ export function getSupabase() {
           if (!fApp) throw new Error("Firebase disabled or not loaded");
           const signUpPromise = fApp.auth().createUserWithEmailAndPassword(email, password);
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("Firebase timeout")), 1500)
+            setTimeout(() => reject(new Error("Firebase timeout")), 10000)
           );
           const res = await Promise.race([signUpPromise, timeoutPromise]);
           const uid = res.user.uid;
           if (options && options.data) {
             try {
               const timeoutWrite = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("Firestore write timeout")), 1500)
+                setTimeout(() => reject(new Error("Firestore write timeout")), 10000)
               );
               const writePromise = fApp.firestore().collection('users').doc(uid).set({
                 id: uid,
@@ -591,7 +586,7 @@ export function getSupabase() {
           if (!fApp) throw new Error("Firebase disabled or not loaded");
           const signInPromise = fApp.auth().signInWithEmailAndPassword(email, password);
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("Firebase timeout")), 1500)
+            setTimeout(() => reject(new Error("Firebase timeout")), 10000)
           );
           const res = await Promise.race([signInPromise, timeoutPromise]);
           return { data: res, error: null };
